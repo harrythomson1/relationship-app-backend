@@ -1,10 +1,11 @@
 from logging.config import fileConfig
 
-from migrations.env_settings import db_url
-
+from alembic import context
 from sqlalchemy import create_engine
 
-from alembic import context
+from api import models  # noqa: F401
+from api.db import Base
+from migrations.env_settings import db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,8 +20,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from api.db import Base
-from api import models  # noqa: F401
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -63,9 +63,7 @@ def run_migrations_online() -> None:
     connectable = create_engine(db_url())
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
@@ -75,4 +73,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
