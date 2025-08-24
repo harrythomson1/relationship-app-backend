@@ -8,3 +8,8 @@ class UserSchema(BaseModel):
     email: str
     name: str
     created_at: datetime
+
+
+class UserCreate(BaseModel):
+    email: str
+    name: str
