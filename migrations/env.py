@@ -3,8 +3,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine
 
-from api import models  # noqa: F401
-from api.db import Base
+from app.api import models  # noqa: F401
+from app.api.db import Base
 from migrations.env_settings import db_url
 
 # this is the Alembic Config object, which provides
