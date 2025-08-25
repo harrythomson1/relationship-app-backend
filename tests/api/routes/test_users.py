@@ -3,8 +3,12 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_create_user(client):
-    email = "harry@example.com"
-    payload = {"email": email, "name": "Harry"}
+    payload = {"email": "harry@example.com", "name": "Harry"}
 
     res = await client.post("/users", json=payload)
     assert res.status_code == 201
+    body = res.json()
+    assert body["email"] == "harry@example.com"
+    assert body["name"] == "Harry"
+    assert "id" in body and body["id"] > 0
+    assert "created_at" in body
