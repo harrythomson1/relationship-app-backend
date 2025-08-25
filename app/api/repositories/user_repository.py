@@ -13,7 +13,7 @@ class UserRepository:
 
     async def add(self, user: User):
         result = await self.db.execute(select(User).where(User.email == user.email))
-        existing_user = result.scalar_one_or_none
+        existing_user = result.scalar_one_or_none()
         if existing_user:
             raise DuplicateEmailError("Email already exists")
         self.db.add(user)
