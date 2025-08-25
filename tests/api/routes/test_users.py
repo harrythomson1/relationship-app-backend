@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_create_user(client):
+async def test_create_user_success(client):
     payload = {"email": "harry@example.com", "name": "Harry"}
 
     res = await client.post("/users", json=payload)
@@ -15,7 +15,7 @@ async def test_create_user(client):
 
 
 @pytest.mark.asyncio
-async def test_create_user_catches_duplicates(client):
+async def test_create_user_duplicate_email_returns_conflict(client):
     payload = {"email": "harry@example.com", "name": "Harry"}
 
     res = await client.post("/users", json=payload)
