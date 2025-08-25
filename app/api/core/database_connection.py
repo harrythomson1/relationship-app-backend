@@ -1,8 +1,9 @@
 from typing import cast
 
-from core.config import DATABASE_URL
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
+
+from app.api.core.config import DATABASE_URL
 
 engine = create_async_engine(cast(str, DATABASE_URL), echo=True)
 
