@@ -1,8 +1,9 @@
 import logging
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_users_service
+from app.api.repositories.user_repository import DuplicateEmailError
 from app.api.schemas.user_schema import UserCreate, UserSchema
 from app.api.services.UsersService import UsersService
 
@@ -22,5 +23,7 @@ async def add_user(user_info: UserCreate, service: UsersService = user_service_d
     try:
         user = await service.add(user_info)
         return user
+    except DuplicateEmailError as e:
+        raise HTTPException(status_code=409, detail={"message": str(e)}) from e
     except Exception:
         logger.exception("Unexpected error with adding a user")
