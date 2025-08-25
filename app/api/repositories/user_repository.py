@@ -20,3 +20,8 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(user)
         return user
+
+    async def get(self, id: int):
+        query = select(User).where(User.id == id)
+        result = await self.db.execute(query)
+        return result.scalars().first()

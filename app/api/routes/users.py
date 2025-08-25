@@ -27,3 +27,9 @@ async def add_user(user_info: UserCreate, service: UsersService = user_service_d
         raise HTTPException(status_code=409, detail={"message": str(e)}) from e
     except Exception:
         logger.exception("Unexpected error with adding a user")
+
+
+@router.get("/users/{id}")
+async def get_user(id: int, service: UsersService = user_service_dependency):
+    user = await service.get(id)
+    return user
