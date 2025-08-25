@@ -75,7 +75,7 @@ async def db_session(async_engine) -> AsyncIterator[AsyncSession]:
 
         # 3) Create an AsyncSession bound to this connection
         SessionLocal = sessionmaker(bind=conn, class_=AsyncSession, expire_on_commit=False)
-        async with SessionLocal() as session:
+        async with SessionLocal() as session:  # type: ignore
             # 4) Listen for subtransactions so that each commit in app code
             #    doesn't break the outer test transaction; SQLAlchemy will
             #    auto-create a new SAVEPOINT after each one is ended.
