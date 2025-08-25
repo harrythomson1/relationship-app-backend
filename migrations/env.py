@@ -1,7 +1,9 @@
 from logging.config import fileConfig
 
+import psycopg
 from alembic import context
 from sqlalchemy import create_engine
+from sqlalchemy.engine.url import make_url
 
 from app.api import models  # noqa: F401
 from app.api.db import Base
@@ -29,6 +31,15 @@ target_metadata = Base.metadata
 # ... etc.
 
 
+# Helper to get a sync DB URL from async one (for Alembic)
+def db_sync_url():
+    u = make_url(db_url())
+    if u.drivername.endswith("+asyncpg"):
+        u = u.set(drivername="postgresql+psycopg")
+    u = u.set(host="127.0.0.1")  # force IPv4 like your working psql test
+    return u
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -41,7 +52,8 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = db_url()
+    u = db_sync_url()
+    url = u.render_as_string(hide_password=True)
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -60,7 +72,15 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = create_engine(db_url())
+    u = db_sync_url()
+    print(f"[alembic] Creating engine with URL: {u.render_as_string(hide_password=True)}")
+    # Use a creator so SQLAlchemy uses our proven-good psycopg connection
+    dsn = u.render_as_string(hide_password=False).replace("+psycopg", "")
+    connectable = create_engine(
+        "postgresql+psycopg://",
+        creator=lambda: psycopg.connect(dsn),
+        pool_pre_ping=True,
+    )
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
