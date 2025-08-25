@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_users_service
 from app.api.repositories.user_repository import DuplicateEmailError
-from app.api.schemas.user_schema import UserCreate, UserSchema
+from app.api.schemas.user_schema import UserCreate, UserSchema, UserUpdate
 from app.api.services.UsersService import UsersService
 
 router = APIRouter()
@@ -32,4 +32,12 @@ async def add_user(user_info: UserCreate, service: UsersService = user_service_d
 @router.get("/users/{id}")
 async def get_user(id: int, service: UsersService = user_service_dependency):
     user = await service.get(id)
+    return user
+
+
+@router.patch("/users/{id}", response_model=UserSchema)
+async def update_username(
+    id: int, update_data: UserUpdate, service: UsersService = user_service_dependency
+):
+    user = await service.update(id, update_data)
     return user

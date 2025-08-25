@@ -25,3 +25,17 @@ class UserRepository:
         query = select(User).where(User.id == id)
         result = await self.db.execute(query)
         return result.scalars().first()
+
+    async def update(self, id, update_data):
+        result = await self.db.execute(select(User).where(User.id == id))
+        user = result.scalar_one_or_none()
+
+        if not user:
+            return None
+
+        if update_data.name is not None:
+            user.name = update_data.name
+
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user

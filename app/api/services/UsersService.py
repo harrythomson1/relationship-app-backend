@@ -12,3 +12,6 @@ class UsersService:
     async def get(self, id):
         user = await self.repository.get(id)
         return user
+
+    async def update(self, id, update_data):
+        return await self.repository.update(id, update_data)
