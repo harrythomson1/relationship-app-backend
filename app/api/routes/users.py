@@ -20,8 +20,9 @@ async def add_user(user_info: UserCreate, service: UsersService = user_service_d
         return user
     except DuplicateEmailError as e:
         raise HTTPException(status_code=409, detail={"message": str(e)}) from e
-    except Exception:
+    except Exception as e:
         logger.exception("Unexpected error with adding a user")
+        raise HTTPException(status_code=500, detail={"message": "Internal server error"}) from e
 
 
 @router.get("/users/{id}")
