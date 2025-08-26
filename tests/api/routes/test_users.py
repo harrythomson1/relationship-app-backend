@@ -41,7 +41,7 @@ async def test_get_user_successfully(client):
 
 
 @pytest.mark.asyncio
-async def test_get_user_fails_with_invalid_email(client):
+async def test_get_post_fails_with_invalid_email(client):
     payload = {"email": "harry.com", "name": "Harry"}
     res = await client.post("/users", json=payload)
     assert res.status_code == 422
