@@ -52,7 +52,7 @@ class UserRepository:
         result = await self.db.execute(query)
         user_to_delete = result.scalars().first()
         if not user_to_delete:
-            return None
+            raise UserNotFoundError("User not found")
 
         await self.db.delete(user_to_delete)
         await self.db.commit()

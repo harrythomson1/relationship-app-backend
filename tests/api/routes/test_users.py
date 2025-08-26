@@ -89,6 +89,7 @@ class TestUsersUpdate:
         await client.delete(f"/users/{user_id}")
         res = await client.patch(f"/users/{user_id}", json=payload)
         assert res.status_code == 404
+        assert res.json()["detail"]["message"] == "User not found"
 
 
 @pytest.mark.users
