@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_users_service
-from app.api.repositories.user_repository import DuplicateEmailError
+from app.api.repositories.user_repository import DuplicateEmailError, UserNotFoundError
 from app.api.schemas.user_schema import UserCreate, UserSchema, UserUpdate
 from app.api.services.UsersService import UsersService
 
@@ -31,9 +31,10 @@ async def add_user(user_info: UserCreate, service: UsersService = user_service_d
 
 @router.get("/users/{id}")
 async def get_user(id: int, service: UsersService = user_service_dependency):
-    user = await service.get(id)
-    if not user:
-        raise HTTPException(status_code=404, detail={"message": "Error user not found"})
+    try:
+        user = await service.get(id)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     return user
 
 

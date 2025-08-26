@@ -7,6 +7,10 @@ class DuplicateEmailError(Exception):
     pass
 
 
+class UserNotFoundError(Exception):
+    pass
+
+
 class UserRepository:
     def __init__(self, db):
         self.db = db
@@ -24,7 +28,10 @@ class UserRepository:
     async def get(self, id: int):
         query = select(User).where(User.id == id)
         result = await self.db.execute(query)
-        return result.scalars().first()
+        user = result.scalars().first()
+        if not user:
+            raise UserNotFoundError("User not found")
+        return user
 
     async def update(self, id, update_data):
         result = await self.db.execute(select(User).where(User.id == id))
