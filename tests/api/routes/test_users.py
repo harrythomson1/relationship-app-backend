@@ -52,6 +52,16 @@ async def test_get_user_successfully(client):
 
 
 @pytest.mark.asyncio
+async def test_get_user_fails_when_passing_not_an_int(client):
+    res = await client.get("/users/NAN")
+    assert res.status_code == 422
+    assert (
+        res.json()["detail"][0]["msg"]
+        == "Input should be a valid integer, unable to parse string as an integer"
+    )
+
+
+@pytest.mark.asyncio
 async def test_update_user_name_successfully(client):
     payload = {"email": "harry@example.com", "name": "Harry"}
     res = await client.post("/users", json=payload)
