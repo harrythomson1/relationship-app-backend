@@ -25,6 +25,17 @@ async def test_create_user_duplicate_email_returns_conflict(client):
 
 
 @pytest.mark.asyncio
+async def test_get_create_user_fails_with_invalid_email(client):
+    payload = {"email": "harry.com", "name": "Harry"}
+    res = await client.post("/users", json=payload)
+    assert res.status_code == 422
+    assert (
+        res.json()["detail"][0]["msg"]
+        == "value is not a valid email address: An email address must have an @-sign."
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_user_successfully(client):
     payload = {"email": "harry@example.com", "name": "Harry"}
     res = await client.post("/users", json=payload)
@@ -38,17 +49,6 @@ async def test_get_user_successfully(client):
     assert body["name"] == "Harry"
     assert "id" in body and body["id"] > 0
     assert "created_at" in body
-
-
-@pytest.mark.asyncio
-async def test_get_post_fails_with_invalid_email(client):
-    payload = {"email": "harry.com", "name": "Harry"}
-    res = await client.post("/users", json=payload)
-    assert res.status_code == 422
-    assert (
-        res.json()["detail"][0]["msg"]
-        == "value is not a valid email address: An email address must have an @-sign."
-    )
 
 
 @pytest.mark.asyncio
