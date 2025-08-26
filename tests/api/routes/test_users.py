@@ -41,6 +41,17 @@ async def test_get_user_successfully(client):
 
 
 @pytest.mark.asyncio
+async def test_get_user_fails_with_invalid_email(client):
+    payload = {"email": "harry.com", "name": "Harry"}
+    res = await client.post("/users", json=payload)
+    assert res.status_code == 422
+    assert (
+        res.json()["detail"][0]["msg"]
+        == "value is not a valid email address: An email address must have an @-sign."
+    )
+
+
+@pytest.mark.asyncio
 async def test_update_user_name_successfully(client):
     payload = {"email": "harry@example.com", "name": "Harry"}
     res = await client.post("/users", json=payload)

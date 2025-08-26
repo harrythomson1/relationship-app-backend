@@ -1,17 +1,17 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserSchema(BaseModel):
     id: int
-    email: str
+    email: EmailStr
     name: str
     created_at: datetime
 
 
 class UserCreate(BaseModel):
-    email: str
+    email: EmailStr
     name: str
 
 
