@@ -78,6 +78,18 @@ class TestUsersUpdate:
         body = res.json()
         assert body["name"] == "New Harry"
 
+    @pytest.mark.asyncio
+    async def test_update_user_name_404s_when_not_found(self, client):
+        payload = {"email": "harry@example.com", "name": "Harry"}
+        res = await client.post("/users", json=payload)
+        payload = {"name": "New Harry"}
+        assert res.status_code == 201
+        created_user = res.json()
+        user_id = created_user["id"]
+        await client.delete(f"/users/{user_id}")
+        res = await client.patch(f"/users/{user_id}", json=payload)
+        assert res.status_code == 404
+
 
 @pytest.mark.users
 @pytest.mark.delete

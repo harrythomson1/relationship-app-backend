@@ -42,7 +42,10 @@ async def get_user(id: int, service: UsersService = user_service_dependency):
 async def update_username(
     id: int, update_data: UserUpdate, service: UsersService = user_service_dependency
 ):
-    user = await service.update(id, update_data)
+    try:
+        user = await service.update(id, update_data)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     return user
 
 

@@ -38,7 +38,7 @@ class UserRepository:
         user = result.scalar_one_or_none()
 
         if not user:
-            return None
+            raise UserNotFoundError("User not found")
 
         if update_data.name is not None:
             user.name = update_data.name
