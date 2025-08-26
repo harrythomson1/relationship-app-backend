@@ -39,3 +39,14 @@ class UserRepository:
         await self.db.commit()
         await self.db.refresh(user)
         return user
+
+    async def delete(self, id):
+        query = select(User).where(User.id == id)
+        result = await self.db.execute(query)
+        user_to_delete = result.scalars().first()
+        if not user_to_delete:
+            return None
+
+        await self.db.delete(user_to_delete)
+        await self.db.commit()
+        return True

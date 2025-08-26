@@ -41,3 +41,8 @@ async def update_username(
 ):
     user = await service.update(id, update_data)
     return user
+
+
+@router.delete("/users/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(id: int, service: UsersService = user_service_dependency):
+    await service.delete(id)

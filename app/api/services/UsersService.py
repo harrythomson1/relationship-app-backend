@@ -15,3 +15,6 @@ class UsersService:
 
     async def update(self, id, update_data):
         return await self.repository.update(id, update_data)
+
+    async def delete(self, id):
+        return await self.repository.delete(id)
