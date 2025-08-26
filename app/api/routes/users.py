@@ -25,7 +25,7 @@ async def add_user(user_info: UserCreate, service: UsersService = user_service_d
         raise HTTPException(status_code=500, detail={"message": "Internal server error"}) from e
 
 
-@router.get("/users/{id}")
+@router.get("/users/{id}", response_model=UserCreate)
 async def get_user(id: int, service: UsersService = user_service_dependency):
     try:
         user = await service.get(id)
