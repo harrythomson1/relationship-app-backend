@@ -32,6 +32,8 @@ async def add_user(user_info: UserCreate, service: UsersService = user_service_d
 @router.get("/users/{id}")
 async def get_user(id: int, service: UsersService = user_service_dependency):
     user = await service.get(id)
+    if not user:
+        raise HTTPException(status_code=404, detail={"message": "Error user not found"})
     return user
 
 

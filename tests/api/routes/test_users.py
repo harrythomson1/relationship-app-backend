@@ -64,3 +64,5 @@ async def test_delete_user_successfully(client):
     user_id = created_user["id"]
     res = await client.delete(f"/users/{user_id}")
     assert res.status_code == 204
+    res = await client.get(f"/users/{user_id}")
+    assert res.status_code == 404
