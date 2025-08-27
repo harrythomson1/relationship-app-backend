@@ -1,9 +1,14 @@
 # conftest.py
 import os
 from collections.abc import AsyncIterator
+from urllib.parse import urlsplit, urlunsplit
 
+import psycopg
 import pytest
 import pytest_asyncio
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=".env.test")
 
 # ---- Alembic (run migrations once per test session)
 from alembic import command
@@ -22,11 +27,31 @@ from app.api.core.database_connection import get_db  # your normal dependency
 from app.api.main import app as fastapi_app
 
 
+def _ensure_database_exists(sync_url: str) -> None:
+    """
+    Ensure the database in `sync_url` exists.
+    Connects to the admin DB (usually /postgres) to CREATE DATABASE if missing.
+    """
+    parts = urlsplit(sync_url)
+    dbname = parts.path.lstrip("/") or "postgres"
+    scheme = parts.scheme.split("+")[0]
+    admin_url = urlunsplit((scheme, parts.netloc, "/postgres", "", ""))
+
+    # autocommit is required to CREATE DATABASE
+    with psycopg.connect(admin_url, autocommit=True) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (dbname,))
+            exists = cur.fetchone() is not None
+            if not exists:
+                cur.execute(f'CREATE DATABASE "{dbname}"')
+
+
 def run_migrations_once() -> None:
     """Apply Alembic migrations to the test DB (sync URL) once per session."""
     sync_url = os.environ.get("SYNC_DATABASE_URL")
     if not sync_url:
         raise RuntimeError("SYNC_DATABASE_URL not set for migrations")
+    _ensure_database_exists(sync_url)
 
     cfg = AlembicConfig("alembic.ini")
     # Make sure env.py reads this or you override in env.py, as you did earlier
@@ -51,13 +76,16 @@ def anyio_backend():
     return "asyncio"
 
 
-@pytest.fixture(scope="session")
-def async_engine():
+@pytest_asyncio.fixture(scope="session")
+async def async_engine():
     async_url = os.environ.get("DATABASE_URL")
     if not async_url:
         raise RuntimeError("DATABASE_URL not set for tests")
     engine = create_async_engine(async_url, echo=False, pool_pre_ping=True, future=True)
-    return engine
+    try:
+        yield engine
+    finally:
+        await engine.dispose()
 
 
 @pytest_asyncio.fixture()
@@ -91,8 +119,10 @@ async def db_session(async_engine) -> AsyncIterator[AsyncSession]:
             yield session
 
         # 5) Roll back to the outer transaction (cleans all changes)
-        await nested.rollback()
-        await trans.rollback()
+        try:
+            await nested.rollback()
+        finally:
+            await trans.rollback()
 
 
 @pytest_asyncio.fixture()
