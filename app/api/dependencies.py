@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.core.database_connection import get_db
 from app.api.repositories.user_repository import UserRepository
-from app.api.services.UsersService import UsersService
+from app.api.services.users_service import UsersService
 
 db_dependency = Depends(get_db)
 

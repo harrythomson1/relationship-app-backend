@@ -25,7 +25,7 @@ class UserRepository:
         await self.db.refresh(user)
         return user
 
-    async def get(self, id: int):
+    async def get_by_id(self, id: int):
         query = select(User).where(User.id == id)
         result = await self.db.execute(query)
         user = result.scalars().first()
