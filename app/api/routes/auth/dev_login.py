@@ -11,7 +11,7 @@ router = APIRouter()
 user_service_dependency = Depends(get_users_service)
 
 
-@router.post("/auth/dev_login", response_model=AuthResponse)
+@router.post("/auth/dev-login", response_model=AuthResponse)
 async def login_or_create(
     login_request: DevLoginRequest, service: UsersService = user_service_dependency
 ):
