@@ -13,6 +13,10 @@ class UsersService:
         user = await self.repository.get_by_id(id)
         return user
 
+    async def get_by_email(self, email):
+        user = await self.repository.get_by_email(email)
+        return user
+
     async def update(self, id, update_data):
         return await self.repository.update(id, update_data)
 
