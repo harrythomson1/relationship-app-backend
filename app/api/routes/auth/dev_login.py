@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends
 
 from app.api.core.security import create_access_token
 from app.api.dependencies import get_users_service
@@ -13,9 +13,7 @@ user_service_dependency = Depends(get_users_service)
 
 @router.post("/auth/dev_login", response_model=AuthResponse)
 async def login_or_create(
-    login_request: DevLoginRequest,
-    service: UsersService = user_service_dependency,
-    response: Response = None,
+    login_request: DevLoginRequest, service: UsersService = user_service_dependency
 ):
     try:
         user = await service.add(login_request)
