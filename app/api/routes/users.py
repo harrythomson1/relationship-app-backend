@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.api.auth.utils import get_current_user
 from app.api.dependencies import get_users_service
 from app.api.repositories.user_repository import DuplicateEmailError, UserNotFoundError
 from app.api.schemas.user_schema import UserCreate, UserSchema, UserUpdate
@@ -11,6 +12,12 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 user_service_dependency = Depends(get_users_service)
+get_current_user_dependency = Depends(get_current_user)
+
+
+@router.get("/users/me", response_model=UserSchema)
+async def get_me(current_user: UserSchema = get_current_user_dependency):
+    return current_user
 
 
 @router.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserSchema)
