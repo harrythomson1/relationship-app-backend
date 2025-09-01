@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.core.security import create_access_token
 from app.api.dependencies import get_users_service
+from app.api.models import User
 from app.api.repositories.user_repository import DuplicateEmailError
 from app.api.schemas.auth_schema import AuthResponse, DevLoginRequest
 from app.api.services.users_service import UsersService
@@ -16,7 +17,7 @@ async def login_or_create(
     login_request: DevLoginRequest, service: UsersService = user_service_dependency
 ):
     try:
-        user = await service.add({"email": login_request.email, "name": "Test User"})
+        user = await service.add(User(email=login_request.email, name="Test User"))
     except DuplicateEmailError:
         user = await service.get_by_email(login_request.email)
 

@@ -69,7 +69,7 @@ class TestUsersMe:
     async def test_me_returns_current_user(self, client):
         # Dev-login to get a token
         email = f"harry+{uuid4().hex[:8]}@example.com"
-        payload = {"email": email, "name": "Harry"}
+        payload = {"email": email}
         res = await client.post("/auth/dev-login", json=payload)
         assert res.status_code == 200
 
@@ -87,7 +87,7 @@ class TestUsersMe:
         me = res.json()
         assert me["id"] == user["id"]
         assert me["email"] == email
-        assert me["name"] == "Harry"
+        assert me["name"] == "Test User"
         assert "created_at" in me
 
     @pytest.mark.asyncio
