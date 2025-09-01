@@ -16,7 +16,7 @@ async def login_or_create(
     login_request: DevLoginRequest, service: UsersService = user_service_dependency
 ):
     try:
-        user = await service.add(login_request)
+        user = await service.add({"email": login_request.email, "name": "Test User"})
     except DuplicateEmailError:
         user = await service.get_by_email(login_request.email)
 

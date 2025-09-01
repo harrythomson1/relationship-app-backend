@@ -5,7 +5,6 @@ from app.api.schemas.user_schema import UserSchema
 
 class DevLoginRequest(BaseModel):
     email: EmailStr
-    name: str
 
 
 class AuthResponse(BaseModel):
