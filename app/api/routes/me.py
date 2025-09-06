@@ -18,7 +18,7 @@ async def get_me(current_user: UserSchema = get_current_user_dependency):
 
 
 @router.patch("/me", response_model=UserSchema)
-async def edit_name(
+async def update_user(
     update_data: UserUpdate,
     current_user=get_current_user_dependency,
     service: UsersService = user_service_dependency,
