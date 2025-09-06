@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import users
+from app.api.routes import me, users
 from app.api.routes.auth import dev_login
 
 app = FastAPI(title="Relationship App API", version="0.1.0")
@@ -15,6 +15,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(me.router)
 app.include_router(users.router)
 app.include_router(dev_login.router)
 

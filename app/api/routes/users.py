@@ -15,11 +15,6 @@ user_service_dependency = Depends(get_users_service)
 get_current_user_dependency = Depends(get_current_user)
 
 
-@router.get("/users/me", response_model=UserSchema)
-async def get_me(current_user: UserSchema = get_current_user_dependency):
-    return current_user
-
-
 @router.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserSchema)
 async def add_user(user_info: UserCreate, service: UsersService = user_service_dependency):
     try:
