@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.auth.utils import get_current_user
 from app.api.dependencies import get_users_service
+from app.api.repositories.user_repository import UserNotFoundError
 from app.api.schemas.user_schema import UserSchema, UserUpdate
 from app.api.services.users_service import UsersService
 
@@ -25,3 +26,13 @@ async def update_user(
 ):
     user = await service.update(current_user.id, update_data)
     return user
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    current_user=get_current_user_dependency, service: UsersService = user_service_dependency
+):
+    try:
+        await service.delete(current_user.id)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e

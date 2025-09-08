@@ -60,31 +60,3 @@ class TestUsersGet:
             res.json()["detail"][0]["msg"]
             == "Input should be a valid integer, unable to parse string as an integer"
         )
-
-
-@pytest.mark.users
-@pytest.mark.delete
-class TestUsersDelete:
-    @pytest.mark.asyncio
-    async def test_delete_user_successfully(self, client):
-        payload = {"email": "harry@example.com", "name": "Harry"}
-        res = await client.post("/users", json=payload)
-        assert res.status_code == 201
-        created_user = res.json()
-        user_id = created_user["id"]
-        res = await client.delete(f"/users/{user_id}")
-        assert res.status_code == 204
-        res = await client.get(f"/users/{user_id}")
-        assert res.status_code == 404
-
-    @pytest.mark.asyncio
-    async def test_delete_user_404s_when_not_found(self, client):
-        payload = {"email": "harry@example.com", "name": "Harry"}
-        res = await client.post("/users", json=payload)
-        assert res.status_code == 201
-        created_user = res.json()
-        user_id = created_user["id"]
-        res = await client.delete(f"/users/{user_id}")
-        assert res.status_code == 204
-        res = await client.delete(f"/users/{user_id}")
-        assert res.status_code == 404

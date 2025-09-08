@@ -34,11 +34,3 @@ async def get_user(id: int, service: UsersService = user_service_dependency):
     except UserNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     return user
-
-
-@router.delete("/users/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(id: int, service: UsersService = user_service_dependency):
-    try:
-        await service.delete(id)
-    except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
