@@ -16,3 +16,4 @@ class RelationshipSchema(BaseModel):
 class RelationshipCreate(BaseModel):
     type: RelationshipType = RelationshipType.romantic
     status: RelationshipStatus = RelationshipStatus.pending
+    user_ids: list[int]
