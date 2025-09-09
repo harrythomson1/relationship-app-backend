@@ -11,3 +11,8 @@ class RelationshipSchema(BaseModel):
     status: RelationshipStatus
     created_at: datetime
     updated_at: datetime
+
+
+class RelationshipCreate(BaseModel):
+    type: RelationshipType = RelationshipType.romantic
+    status: RelationshipStatus = RelationshipStatus.pending
