@@ -13,6 +13,12 @@ class MemberRole(enum.Enum):
     admin = "admin"
 
 
+class RelationshipType(enum.Enum):
+    romantic = "romantic"
+    friendship = "friendship"
+    family = "family"
+
+
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -32,7 +38,11 @@ class User(Base):
 class Relationship(Base):
     __tablename__ = "relationships"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    type: Mapped[str] = mapped_column(String(120), nullable=False)
+    type: Mapped[RelationshipType] = mapped_column(
+        SAEnum(RelationshipType, name="type_role"),
+        default=RelationshipType.romantic,
+        nullable=False,
+    )
     status: Mapped[str] = mapped_column(String(120), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
