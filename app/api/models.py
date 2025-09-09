@@ -19,6 +19,13 @@ class RelationshipType(enum.Enum):
     family = "family"
 
 
+class RelationshipStatus(enum.Enum):
+    active = "active"
+    inactive = "inactive"
+    pending = "pending"
+    ended = "ended"
+
+
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -39,11 +46,15 @@ class Relationship(Base):
     __tablename__ = "relationships"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     type: Mapped[RelationshipType] = mapped_column(
-        SAEnum(RelationshipType, name="type_role"),
+        SAEnum(RelationshipType, name="relationship_type"),
         default=RelationshipType.romantic,
         nullable=False,
     )
-    status: Mapped[str] = mapped_column(String(120), nullable=False)
+    status: Mapped[RelationshipStatus] = mapped_column(
+        SAEnum(RelationshipStatus, name="relationship_status"),
+        default=RelationshipStatus.pending,
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
