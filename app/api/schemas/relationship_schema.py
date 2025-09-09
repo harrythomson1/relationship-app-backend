@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.api.models import RelationshipStatus, RelationshipType
 
@@ -16,4 +17,4 @@ class RelationshipSchema(BaseModel):
 class RelationshipCreate(BaseModel):
     type: RelationshipType = RelationshipType.romantic
     status: RelationshipStatus = RelationshipStatus.pending
-    user_ids: list[int]
+    user_ids: Annotated[list[int], Field(min_length=2, max_length=2)]
