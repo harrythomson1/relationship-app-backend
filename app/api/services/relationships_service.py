@@ -7,7 +7,7 @@ class RelationshipsService:
         self.db = db
 
     async def add(self, relationship_info):
-        async with self.db.begin():
+        async with self.db.begin_nested():
             u1, u2 = relationship_info.user_ids
             if u1 == u2:
                 raise ValueError("A relationship must have two distinct users")
