@@ -2,11 +2,12 @@ from app.api.models import Relationship, RelationshipMember
 
 
 class RelationshipsService:
-    def __init__(self, repository):
+    def __init__(self, repository, db):
         self.repository = repository
+        self.db = db
 
     async def add(self, relationship_info):
-        async with self.repository.db.begin():
+        async with self.db.begin():
             u1, u2 = relationship_info.user_ids
             if u1 == u2:
                 raise ValueError("A relationship must have two distinct users")
@@ -21,3 +22,7 @@ class RelationshipsService:
             await self.repository.add_relationship_members(rel_member_1)
             await self.repository.add_relationship_members(rel_member_2)
             return rel
+
+    async def get_by_id(self, id):
+        rel = await self.repository.get_by_id(id)
+        return rel

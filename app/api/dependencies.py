@@ -15,7 +15,7 @@ async def get_user_repository(db: AsyncSession = db_dependency):
 
 
 async def get_relationship_repository(db: AsyncSession = db_dependency):
-    return RelationshipRepository
+    return RelationshipRepository(db)
 
 
 user_repository_dependency = Depends(get_user_repository)
@@ -26,5 +26,7 @@ async def get_users_service(user_repostitory=user_repository_dependency):
     return UsersService(repository=user_repostitory)
 
 
-async def get_relationships_service(relationship_repository=relationship_repository_dependency):
-    return RelationshipsService(repository=relationship_repository)
+async def get_relationships_service(
+    db=db_dependency, relationship_repository=relationship_repository_dependency
+):
+    return RelationshipsService(relationship_repository, db)

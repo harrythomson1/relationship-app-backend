@@ -1,9 +1,13 @@
 from sqlalchemy import select
 
-from app.api.models import RelationshipMember
+from app.api.models import Relationship, RelationshipMember
 
 
 class DuplicateEntryError(Exception):
+    pass
+
+
+class RelationshipNotFoundError(Exception):
     pass
 
 
@@ -13,7 +17,7 @@ class RelationshipRepository:
 
     async def add_relationship(self, relationship):
         self.db.add(relationship)
-        await self.db.flush(relationship)
+        await self.db.flush()
         return relationship
 
     async def add_relationship_members(self, relationship_member):
@@ -27,5 +31,13 @@ class RelationshipRepository:
         if existing:
             raise DuplicateEntryError("User is already a part of this relationship")
         self.db.add(relationship_member)
-        await self.db.flush(relationship_member)
+        await self.db.flush()
         return relationship_member
+
+    async def get_by_id(self, id):
+        query = select(Relationship).where(Relationship.id == id)
+        result = await self.db.execute(query)
+        rel = result.scalars().first()
+        if not rel:
+            raise RelationshipNotFoundError("Relationship not found")
+        return rel
