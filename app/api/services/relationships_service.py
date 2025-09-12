@@ -26,3 +26,6 @@ class RelationshipsService:
     async def get_by_id(self, id):
         rel = await self.repository.get_by_id(id)
         return rel
+
+    async def update(self, id, update_data):
+        return await self.repository.update(id, update_data)
