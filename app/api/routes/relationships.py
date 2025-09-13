@@ -64,3 +64,5 @@ async def delete_relationship(
         await service.delete(current_user.id)
     except RelationshipMemberNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    except RelationshipNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
