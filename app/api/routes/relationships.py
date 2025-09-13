@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.auth.utils import get_current_user
 from app.api.dependencies import get_relationships_service
@@ -66,3 +66,4 @@ async def delete_relationship(
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     except RelationshipNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
