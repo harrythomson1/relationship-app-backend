@@ -130,7 +130,8 @@ class TestRelationshipsDelete:
         deleted_relationship = await client.delete("/relationships")
         assert deleted_relationship.status_code == 401
         assert deleted_relationship.json()["detail"] == "Not authenticated"
-        relationship = await client.get(f"/relationships/{res.json()["id"]}")
+        rel_id = res.json()["id"]
+        relationship = await client.get(f"/relationships/{rel_id}")
         assert relationship.status_code == 200
 
     async def test_delete_relationship_not_found(self, client: AsyncClient):
