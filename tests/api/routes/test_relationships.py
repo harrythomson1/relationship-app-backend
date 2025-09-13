@@ -126,6 +126,9 @@ class TestRelationshipsDelete:
         assert relationship.status_code == 404, relationship.text
 
     async def test_delete_relationship_when_headers_not_passed(self, client: AsyncClient):
+        res = await _create_relationship(client)
         deleted_relationship = await client.delete("/relationships")
         assert deleted_relationship.status_code == 401
         assert deleted_relationship.json()["detail"] == "Not authenticated"
+        relationship = await client.get(f"/relationships/{res.json()["id"]}")
+        assert relationship.status_code == 200
