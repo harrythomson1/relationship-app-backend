@@ -36,6 +36,18 @@ async def _create_relationship(client: AsyncClient):
     return await client.post("/relationships", json=payload)
 
 
+async def _create_authed_relationship(client: AsyncClient):
+    token, me_id = await dev_login(client)
+    u2 = await _create_user(client)
+    payload = {
+        "type": "romantic",
+        "status": "pending",
+        "role": "partner",
+        "user_ids": [me_id, u2],
+    }
+    return await client.post("/relationships", json=payload), token
+
+
 @pytest.mark.asyncio
 class TestRelationshipsCreate:
     async def test_create_relationship_success(self, client: AsyncClient):
@@ -74,21 +86,9 @@ class TestRelationshipsGet:
 @pytest.mark.asyncio
 class TestRelationshipsUpdate:
     async def test_update_relationship_success(self, client: AsyncClient):
-        token, me_id = await dev_login(client)
-
-        # Create a second user
-        u2 = await _create_user(client)
-
-        # Create a relationship including the authenticated user
-        payload = {
-            "type": "romantic",
-            "status": "pending",
-            "role": "partner",
-            "user_ids": [me_id, u2],
-        }
-        create_res = await client.post("/relationships", json=payload)
-        assert create_res.status_code == 201, create_res.text
-        body = create_res.json()
+        result, token = await _create_authed_relationship(client)
+        assert result.status_code == 201, result.text
+        body = result.json()
         rel_id = body["id"]
 
         # Update the relationship
@@ -112,15 +112,7 @@ class TestRelationshipsUpdate:
 @pytest.mark.asyncio
 class TestRelationshipsDelete:
     async def test_delete_relationship_success(self, client: AsyncClient):
-        token, me_id = await dev_login(client)
-        u2 = await _create_user(client)
-        payload = {
-            "type": "romantic",
-            "status": "pending",
-            "role": "partner",
-            "user_ids": [me_id, u2],
-        }
-        result = await client.post("/relationships", json=payload)
+        result, token = await _create_authed_relationship(client)
         assert result.status_code == 201, result.text
         body = result.json()
         relationship_id = body["id"]
