@@ -66,6 +66,12 @@ class RelationshipRepository:
         await self.db.refresh(relationship)
         return relationship
 
+    async def delete(self, user_id):
+        relationship = await self._get_by_user_id(user_id)
+        await self.db.delete(relationship)
+        await self.db.commit()
+        return True
+
     async def _get_by_user_id(self, user_id):
         result = await self.db.execute(
             select(RelationshipMember).where(RelationshipMember.user_id == user_id)

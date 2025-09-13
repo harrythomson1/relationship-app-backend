@@ -113,3 +113,28 @@ class TestRelationshipsUpdate:
         headers = {"Authorization": f"Bearer {token}"}
         res = await client.patch("/relationships", json=patch_payload, headers=headers)
         assert res.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestRelationshipsDelete:
+    async def test_delete_relationship_success(self, client: AsyncClient):
+        token, me_id = await dev_login(client)
+        u2 = await _create_user(client)
+        payload = {
+            "type": "romantic",
+            "status": "pending",
+            "role": "partner",
+            "user_ids": [me_id, u2],
+        }
+        result = await client.post("/relationships", json=payload)
+        assert result.status_code == 201, result.text
+        body = result.json()
+        relationship_id = body["id"]
+        headers = {"Authorization": f"Bearer {token}"}
+        deleted_relationship = await client.delete("/relationships", headers=headers)
+        assert deleted_relationship.status_code == 204, (
+            deleted_relationship.text or deleted_relationship.content
+        )
+
+        relationship = await client.get(f"/relationships/{relationship_id}")
+        assert relationship.status_code == 404, relationship.text

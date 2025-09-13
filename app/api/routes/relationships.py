@@ -53,3 +53,11 @@ async def update_relationship(
     except RelationshipNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     return relationship
+
+
+@router.delete("/relationships", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_relationship(
+    current_user=get_current_user_dependency,
+    service: RelationshipsService = relationship_service_dependency,
+):
+    await service.delete(current_user.id)
