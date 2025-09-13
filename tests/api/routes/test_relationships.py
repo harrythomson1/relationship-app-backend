@@ -64,12 +64,12 @@ class TestRelationshipsCreate:
 @pytest.mark.asyncio
 class TestRelationshipsGet:
     async def test_get_relationship_success(self, client: AsyncClient):
-        res = await _create_relationship(client)
+        res, token = await _create_authed_relationship(client)
         assert res.status_code == 201, res.text
         rel_id = res.json()["id"]
 
-        # Now retrieve it
-        get_res = await client.get(f"/relationships/{rel_id}")
+        headers = {"Authorization": f"Bearer {token}"}
+        get_res = await client.get(f"/relationships/{rel_id}", headers=headers)
         assert get_res.status_code == 200, get_res.text
         body = get_res.json()
         assert body["id"] == rel_id
@@ -77,7 +77,9 @@ class TestRelationshipsGet:
         assert body["status"] == "pending"
 
     async def test_get_relationship_404(self, client: AsyncClient):
-        res = await client.get("/relationships/999999")
+        _, token = await _create_authed_relationship(client)
+        headers = {"Authorization": f"Bearer {token}"}
+        res = await client.get("/relationships/999999", headers=headers)
         assert res.status_code == 404
         body = res.json()
         assert "detail" in body
@@ -99,7 +101,6 @@ class TestRelationshipsUpdate:
         body = result.json()
         rel_id = body["id"]
 
-        # Update the relationship
         patch_payload = {"status": "active", "type": "friendship"}
         headers = {"Authorization": f"Bearer {token}"}
         patch_res = await client.patch("/relationships", json=patch_payload, headers=headers)
@@ -130,16 +131,17 @@ class TestRelationshipsDelete:
             deleted_relationship.text or deleted_relationship.content
         )
 
-        relationship = await client.get(f"/relationships/{relationship_id}")
+        relationship = await client.get(f"/relationships/{relationship_id}", headers=headers)
         assert relationship.status_code == 404, relationship.text
 
-    async def test_delete_relationship_when_headers_not_passed(self, client: AsyncClient):
-        res = await _create_relationship(client)
+    async def test_delete_relationship_when_headers_not_passed_in_delete(self, client: AsyncClient):
+        res, token = await _create_authed_relationship(client)
         deleted_relationship = await client.delete("/relationships")
         assert deleted_relationship.status_code == 401
         assert deleted_relationship.json()["detail"] == "Not authenticated"
         rel_id = res.json()["id"]
-        relationship = await client.get(f"/relationships/{rel_id}")
+        headers = {"Authorization": f"Bearer {token}"}
+        relationship = await client.get(f"/relationships/{rel_id}", headers=headers)
         assert relationship.status_code == 200
 
     async def test_delete_relationship_not_found(self, client: AsyncClient):

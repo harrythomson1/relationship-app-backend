@@ -58,8 +58,8 @@ class RelationshipRepository:
             & (RelationshipMember.user_id == current_user.id)
         )
         result = await self.db.execute(query)
-        rel = result.scalars().first()
-        if not rel:
+        rel_mem = result.scalars().first()
+        if not rel_mem:
             raise UserNotAMemberOfRelationshipError("User is not a member of relationship")
         return rel
 
