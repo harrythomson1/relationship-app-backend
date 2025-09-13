@@ -82,6 +82,14 @@ class TestRelationshipsGet:
         body = res.json()
         assert "detail" in body
 
+    async def test_unauthorized_user(self, client: AsyncClient):
+        _, token = await _create_authed_relationship(client)
+        rel_2 = await _create_relationship(client)
+        rel_2_id = rel_2.json()["id"]
+        headers = {"Authorization": f"Bearer {token}"}
+        get_res = await client.get(f"/relationships/{rel_2_id}", headers=headers)
+        assert get_res.status_code == 401
+
 
 @pytest.mark.asyncio
 class TestRelationshipsUpdate:

@@ -5,6 +5,7 @@ from app.api.dependencies import get_relationships_service
 from app.api.repositories.relationship_repository import (
     RelationshipMemberNotFoundError,
     RelationshipNotFoundError,
+    UserNotAMemberOfRelationshipError,
 )
 from app.api.schemas.relationship_schema import (
     RelationshipCreate,
@@ -31,12 +32,16 @@ async def add_relationship(
 
 @router.get("/relationships/{id}", response_model=RelationshipSchema)
 async def get_relationship(
-    id: int, service: RelationshipsService = relationship_service_dependency
+    id: int,
+    service: RelationshipsService = relationship_service_dependency,
+    current_user=get_current_user_dependency,
 ):
     try:
-        rel = await service.get_by_id(id)
+        rel = await service.get_by_id(id, current_user)
     except RelationshipNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    except UserNotAMemberOfRelationshipError as e:
+        raise HTTPException(status_code=401, detail={"message": str(e)}) from e
     return rel
 
 

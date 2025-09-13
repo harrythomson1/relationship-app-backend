@@ -16,6 +16,10 @@ class RelationshipMemberNotFoundError(Exception):
     pass
 
 
+class UserNotAMemberOfRelationshipError(Exception):
+    pass
+
+
 ALLOWED_FIELDS = {"status", "type"}
 
 
@@ -43,12 +47,20 @@ class RelationshipRepository:
         await self.db.flush()
         return relationship_member
 
-    async def get_by_id(self, id):
+    async def get_by_id(self, id, current_user):
         query = select(Relationship).where(Relationship.id == id)
         result = await self.db.execute(query)
         rel = result.scalars().first()
         if not rel:
             raise RelationshipNotFoundError("Relationship not found")
+        query = select(RelationshipMember).where(
+            (RelationshipMember.relationship_id == id)
+            & (RelationshipMember.user_id == current_user.id)
+        )
+        result = await self.db.execute(query)
+        rel = result.scalars().first()
+        if not rel:
+            raise UserNotAMemberOfRelationshipError("User is not a member of relationship")
         return rel
 
     async def update(self, user_id, update_data):
