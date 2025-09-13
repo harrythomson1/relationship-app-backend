@@ -132,3 +132,10 @@ class TestRelationshipsDelete:
         assert deleted_relationship.json()["detail"] == "Not authenticated"
         relationship = await client.get(f"/relationships/{res.json()["id"]}")
         assert relationship.status_code == 200
+
+    async def test_delete_relationship_not_found(self, client: AsyncClient):
+        token, me_id = await dev_login(client)
+        headers = {"Authorization": f"Bearer {token}"}
+        result = await client.delete("/relationships", headers=headers)
+        assert result.status_code == 404
+        assert result.json()["detail"]["message"] == "Relationship member not found"

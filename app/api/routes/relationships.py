@@ -60,4 +60,7 @@ async def delete_relationship(
     current_user=get_current_user_dependency,
     service: RelationshipsService = relationship_service_dependency,
 ):
-    await service.delete(current_user.id)
+    try:
+        await service.delete(current_user.id)
+    except RelationshipMemberNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
