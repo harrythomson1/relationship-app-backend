@@ -54,9 +54,6 @@ class RelationshipRepository:
     async def update(self, user_id, update_data):
         relationship = await self._get_by_user_id(user_id)
 
-        if not relationship:
-            raise RelationshipNotFoundError("Relationship not found")
-
         updates = update_data.model_dump(exclude_unset=True, exclude_none=True)
 
         updates = {k: v for k, v in updates.items() if k in ALLOWED_FIELDS}
@@ -81,4 +78,7 @@ class RelationshipRepository:
         result = await self.db.execute(
             select(Relationship).where(Relationship.id == relationship_member.relationship_id)
         )
-        return result.scalar_one_or_none()
+        relationship = result.scalar_one_or_none()
+        if not relationship:
+            raise RelationshipNotFoundError("Relationship not found")
+        return relationship
