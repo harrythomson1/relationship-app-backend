@@ -22,21 +22,24 @@ async def dev_login(client: AsyncClient, email: str | None = None):
     return body["token"], body["user"]["id"]
 
 
+async def _create_relationship(client: AsyncClient):
+    u1 = await _create_user(client)
+    u2 = await _create_user(client)
+
+    payload = {
+        "type": "romantic",
+        "status": "pending",
+        "role": "partner",
+        "user_ids": [u1, u2],
+    }
+
+    return await client.post("/relationships", json=payload)
+
+
 @pytest.mark.asyncio
 class TestRelationshipsCreate:
     async def test_create_relationship_success(self, client: AsyncClient):
-        # Create two users to relate
-        u1 = await _create_user(client)
-        u2 = await _create_user(client)
-
-        payload = {
-            "type": "romantic",
-            "status": "pending",
-            "role": "partner",
-            "user_ids": [u1, u2],
-        }
-
-        res = await client.post("/relationships", json=payload)
+        res = await _create_relationship(client)
         assert res.status_code == 201, res.text
         body = res.json()
         assert body["id"] > 0
@@ -49,18 +52,9 @@ class TestRelationshipsCreate:
 @pytest.mark.asyncio
 class TestRelationshipsGet:
     async def test_get_relationship_success(self, client: AsyncClient):
-        # First, create a relationship we can fetch
-        u1 = await _create_user(client)
-        u2 = await _create_user(client)
-        create_payload = {
-            "type": "romantic",
-            "status": "pending",
-            "role": "partner",
-            "user_ids": [u1, u2],
-        }
-        create_res = await client.post("/relationships", json=create_payload)
-        assert create_res.status_code == 201, create_res.text
-        rel_id = create_res.json()["id"]
+        res = await _create_relationship(client)
+        assert res.status_code == 201, res.text
+        rel_id = res.json()["id"]
 
         # Now retrieve it
         get_res = await client.get(f"/relationships/{rel_id}")
