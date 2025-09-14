@@ -19,7 +19,7 @@ class RelationshipInviteRepository:
         )
         existing_invite = result.scalar_one_or_none()
         if existing_invite:
-            raise DuplicateInviteError("Email already exists")
+            raise DuplicateInviteError("Invite already exists")
         self.db.add(invite)
         await self.db.commit()
         await self.db.refresh(invite)

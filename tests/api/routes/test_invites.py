@@ -31,3 +31,4 @@ class TestRelationshipInvite:
             "/relationships/invites", headers=headers, json={"invitee_email": user_2["email"]}
         )
         assert res.status_code == 409
+        assert res.json()["detail"]["message"] == "Invite already exists"
