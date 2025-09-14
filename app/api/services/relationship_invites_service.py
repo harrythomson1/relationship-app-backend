@@ -5,8 +5,8 @@ class RelationshipInvitesService:
     def __init__(self, repository):
         self.repository = repository
 
-    async def add(self, relationship_invite_info, user_id):
+    async def add(self, relationship_invite_info, user):
         invite = Invite(
-            invitee_email=relationship_invite_info.invitee_email, inviter_user_id=user_id
+            invitee_email=relationship_invite_info.invitee_email, inviter_user_id=user.id
         )
-        return await self.repository.add(invite, user_id)
+        return await self.repository.add(invite, user.id)
