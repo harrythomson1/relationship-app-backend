@@ -3,12 +3,12 @@ from uuid import uuid4
 from httpx import AsyncClient
 
 
-async def _create_user(client: AsyncClient, *, name: str = "Test User") -> int:
+async def _create_user(client: AsyncClient, *, name: str = "Test User"):
     email = f"test+{uuid4().hex[:8]}@example.com"
     res = await client.post("/users", json={"email": email, "name": name})
     assert res.status_code == 201, res.text
     body = res.json()
-    return body["id"]
+    return body
 
 
 async def dev_login(client: AsyncClient, email: str | None = None):
@@ -30,7 +30,7 @@ async def _create_relationship(client: AsyncClient):
         "type": "romantic",
         "status": "pending",
         "role": "partner",
-        "user_ids": [u1, u2],
+        "user_ids": [u1["id"], u2["id"]],
     }
 
     return await client.post("/relationships", json=payload)
@@ -43,6 +43,6 @@ async def _create_authed_relationship(client: AsyncClient):
         "type": "romantic",
         "status": "pending",
         "role": "partner",
-        "user_ids": [user["id"], u2],
+        "user_ids": [user["id"], u2["id"]],
     }
     return await client.post("/relationships", json=payload), token
