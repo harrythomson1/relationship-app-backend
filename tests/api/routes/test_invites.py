@@ -17,3 +17,17 @@ class TestRelationshipInvite:
             "/relationships/invites", headers=headers, json={"invitee_email": user_2["email"]}
         )
         assert res.status_code == 201
+
+    @pytest.mark.asyncio
+    async def test_invite_duplication(self, client: AsyncClient):
+        token, _ = await dev_login(client)
+        headers = {"Authorization": f"Bearer {token}"}
+        user_2 = await _create_user(client)
+        res = await client.post(
+            "/relationships/invites", headers=headers, json={"invitee_email": user_2["email"]}
+        )
+        assert res.status_code == 201
+        res = await client.post(
+            "/relationships/invites", headers=headers, json={"invitee_email": user_2["email"]}
+        )
+        assert res.status_code == 409
