@@ -8,7 +8,7 @@ from app.api.schemas.relationship_invite_schema import (
     RelationshipInviteSchema,
 )
 from app.api.services.relationship_invites_service import RelationshipInvitesService
-from app.api.utils.mailer import send_email
+from app.api.utils import mailer
 
 router = APIRouter(prefix="/relationships", tags=["relationships"])
 
@@ -28,7 +28,7 @@ async def add_relationship_invite(
     try:
         relationship_invite = await service.add(relationship_invite_info, current_user)
         background.add_task(
-            send_email,
+            mailer.send_email,
             sender=current_user.email,
             receiver=relationship_invite_info.invitee_email,
             subject="Let's connect",
