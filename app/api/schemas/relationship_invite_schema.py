@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.api.models import InviteStatus, MemberRole
 
@@ -19,3 +19,9 @@ class RelationshipInviteSchema(BaseModel):
     accepted_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class RelationshipInviteCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    role: MemberRole = MemberRole.partner
+    invitee_email: str
