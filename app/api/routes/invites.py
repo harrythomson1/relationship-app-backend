@@ -18,7 +18,7 @@ get_current_user_dependency = Depends(get_current_user)
 @router.post(
     "/invites", status_code=status.HTTP_201_CREATED, response_model=RelationshipInviteSchema
 )
-async def add_relationship(
+async def add_relationship_invite(
     relationship_invite_info: RelationshipInviteCreate,
     service: RelationshipInvitesService = relationship_invite_service_dependency,
     current_user=get_current_user_dependency,
