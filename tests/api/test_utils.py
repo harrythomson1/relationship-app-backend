@@ -18,7 +18,8 @@ async def dev_login(client: AsyncClient, email: str | None = None):
     res = await client.post("/auth/dev-login", json={"email": email})
     assert res.status_code == 200, res.text
     body = res.json()
-    return body["token"], body["user"]["id"]
+    # breakpoint()
+    return body["token"], body["user"]
 
 
 async def _create_relationship(client: AsyncClient):
@@ -36,12 +37,12 @@ async def _create_relationship(client: AsyncClient):
 
 
 async def _create_authed_relationship(client: AsyncClient):
-    token, me_id = await dev_login(client)
+    token, user = await dev_login(client)
     u2 = await _create_user(client)
     payload = {
         "type": "romantic",
         "status": "pending",
         "role": "partner",
-        "user_ids": [me_id, u2],
+        "user_ids": [user["id"], u2],
     }
     return await client.post("/relationships", json=payload), token
