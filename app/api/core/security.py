@@ -1,13 +1,16 @@
 import os
 from datetime import datetime, timedelta
 
+import requests
 from dotenv import load_dotenv
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
 
 load_dotenv()
 
-ALGORITHM = "HS256"
+JWKS_URL = "https://kzuztavhripyncgxtzhr.supabase.co/auth/v1/.well-known/jwks.json"
+
+ALGORITHM = "ES256"
 
 _secret = os.getenv("JWT_SECRET")
 if _secret is None:
@@ -26,7 +29,24 @@ def create_access_token(payload: dict, expires_minutes: int = 30):
 
 def verify_access_token(token: str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        response = requests.get(JWKS_URL)
+        response.raise_for_status()  # raises if status != 200
+
+        jwks = response.json()
+        header = jwt.get_unverified_header(token)
+        alg = header.get("alg")
+        header_kid = header.get("kid")
+        if alg != ALGORITHM:
+            raise HTTPException(status_code=401, detail="Unexpected alg")
+        key = next(key for key in jwks["keys"] if key["kid"] == header_kid)
+        payload = jwt.decode(
+            token,
+            key=key,
+            algorithms=[ALGORITHM],
+            issuer="https://kzuztavhripyncgxtzhr.supabase.co/auth/v1",
+            audience="authenticated",
+        )
+        breakpoint()
         user_id: str | None = payload.get("sub")
         if user_id is None:
             raise HTTPException(
