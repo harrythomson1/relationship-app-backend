@@ -9,8 +9,9 @@ from jose import JWTError, jwt
 load_dotenv()
 
 JWKS_URL = "https://kzuztavhripyncgxtzhr.supabase.co/auth/v1/.well-known/jwks.json"
-
 ALGORITHM = "ES256"
+PROJECT_URL = "https://kzuztavhripyncgxtzhr.supabase.co/auth/v1"
+AUDIENCE = "authenticated"
 
 _secret = os.getenv("JWT_SECRET")
 if _secret is None:
@@ -30,7 +31,7 @@ def create_access_token(payload: dict, expires_minutes: int = 30):
 def verify_access_token(token: str):
     try:
         response = requests.get(JWKS_URL)
-        response.raise_for_status()  # raises if status != 200
+        response.raise_for_status()
 
         jwks = response.json()
         header = jwt.get_unverified_header(token)
@@ -38,17 +39,20 @@ def verify_access_token(token: str):
         header_kid = header.get("kid")
         if alg != ALGORITHM:
             raise HTTPException(status_code=401, detail="Unexpected alg")
-        key = next(key for key in jwks["keys"] if key["kid"] == header_kid)
+        try:
+            key = next(key for key in jwks["keys"] if key["kid"] == header_kid)
+        except StopIteration as e:
+            raise HTTPException(status_code=401, detail="Unknown key id (kid)") from e
         payload = jwt.decode(
             token,
             key=key,
             algorithms=[ALGORITHM],
-            issuer="https://kzuztavhripyncgxtzhr.supabase.co/auth/v1",
-            audience="authenticated",
+            issuer=PROJECT_URL,
+            audience=AUDIENCE,
+            options={"leeway": 60},
         )
-        breakpoint()
-        user_id: str | None = payload.get("sub")
-        if user_id is None:
+        sub: str | None = payload.get("sub")
+        if sub is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is missing subject claim"
             )
