@@ -23,12 +23,12 @@ async def get_current_user(
         if sub is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         try:
-            user_id = int(sub)
+            user_id = str(sub)
         except (TypeError, ValueError) as e:
             raise HTTPException(status_code=401, detail="Invalid token subject") from e
 
         repo = UserRepository(db)
-        user = await repo.get_by_id(user_id)
+        user = await repo.get_by_supabase_user_id(user_id)
         return user
 
     except (JWTError, UserNotFoundError) as e:

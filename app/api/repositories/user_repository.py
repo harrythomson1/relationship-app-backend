@@ -33,6 +33,14 @@ class UserRepository:
             raise UserNotFoundError("User not found")
         return user
 
+    async def get_by_supabase_user_id(self, supabase_user_id: str):
+        query = select(User).where(User.supabase_user_id == supabase_user_id)
+        result = await self.db.execute(query)
+        user = result.scalars().first()
+        if not user:
+            raise UserNotFoundError("User not found")
+        return user
+
     async def get_by_email(self, email: str):
         query = select(User).where(User.email == email)
         result = await self.db.execute(query)
