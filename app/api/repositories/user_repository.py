@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 
 from app.api.models import User
@@ -34,7 +36,8 @@ class UserRepository:
         return user
 
     async def get_by_supabase_user_id(self, supabase_user_id: str):
-        query = select(User).where(User.supabase_user_id == supabase_user_id)
+        supabase_uuid = UUID(supabase_user_id)
+        query = select(User).where(User.supabase_user_id == supabase_uuid)
         result = await self.db.execute(query)
         user = result.scalars().first()
         if not user:
