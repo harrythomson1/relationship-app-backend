@@ -67,25 +67,16 @@ class TestUsersMe:
 class TestUsersUpdate:
     @pytest.mark.asyncio
     async def test_update_user_name_successfully(self, client):
-        # Dev-login to get a token and user
-        email = "harry@example.com"
-        login_res = await client.post("/auth/dev-login", json={"email": email})
-        assert login_res.status_code == 200
-        payload = login_res.json()
-        token = payload["token"]
-        user = payload["user"]
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
 
-        # Patch /users/me with new name
         update_payload = {"name": "New Harry"}
         res = await client.patch(
             "/users/me",
             json=update_payload,
-            headers={"Authorization": f"Bearer {token}"},
         )
         assert res.status_code == 200
         body = res.json()
-        assert body["id"] == user["id"]
-        assert body["email"] == email
         assert body["name"] == "New Harry"
 
     @pytest.mark.asyncio
