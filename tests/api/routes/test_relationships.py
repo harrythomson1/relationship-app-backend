@@ -98,15 +98,35 @@ class TestRelationshipsDelete:
 
     async def test_delete_relationship_when_headers_not_passed_in_delete(self, client: AsyncClient):
         res = await _create_authed_relationship(client)
+        from app.api.auth.utils import get_current_claims
+        from app.api.main import app
+
+        prev = app.dependency_overrides.get(get_current_claims)
+        app.dependency_overrides.pop(get_current_claims, None)
+
         deleted_relationship = await client.delete("/relationships")
         assert deleted_relationship.status_code == 401
         assert deleted_relationship.json()["detail"] == "Not authenticated"
+
+        if prev is not None:
+            app.dependency_overrides[get_current_claims] = prev
+
         rel_id = res.json()["id"]
         relationship = await client.get(f"/relationships/{rel_id}")
-        assert relationship.status_code == 200
+        assert relationship.status_code == 200, relationship.text
 
     async def test_delete_relationship_not_found(self, client: AsyncClient):
-        await _create_user(client)
+        from tests.api.test_utils import _set_claims
+
+        user = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(user["supabase_user_id"]),
+                "email": user["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
         result = await client.delete("/relationships")
-        assert result.status_code == 404
+        assert result.status_code == 404, result.text
         assert result.json()["detail"]["message"] == "Relationship member not found"
