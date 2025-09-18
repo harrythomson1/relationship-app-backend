@@ -124,18 +124,11 @@ class TestUsersUpdateAuth:
 class TestUsersDelete:
     @pytest.mark.asyncio
     async def test_delete_user_successfully(self, client):
-        # Create a user via dev-login to get token
-        email = "harry@example.com"
-        login_res = await client.post("/auth/dev-login", json={"email": email})
-        assert login_res.status_code == 200
-        payload = login_res.json()
-        token = payload["token"]
-        user = payload["user"]
-
-        # Delete current user via /users/me
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
+        user = login_res.json()
         del_res = await client.delete(
             "/users/me",
-            headers={"Authorization": f"Bearer {token}"},
         )
         assert del_res.status_code in (200, 204)
 
