@@ -1,30 +1,46 @@
 import pytest
 
+from app.api.auth.utils import get_current_claims
+from app.api.main import app
+
+
+@pytest.fixture
+def claims():
+    return {
+        "sub": "8012611b-e385-463e-b719-1a5b468a6ce5",
+        "email": "harry@example.com",
+        "aud": "authenticated",
+        "iss": "https://fakereference.supabase.co/auth/v1",
+    }
+
+
+@pytest.fixture(autouse=True)
+def override_claims(claims):
+    # Make every test “authenticated” by default
+    async def _override():
+        return claims
+
+    app.dependency_overrides[get_current_claims] = _override
+    yield
+    app.dependency_overrides.clear()
+
 
 class TestUsersMe:
     @pytest.mark.asyncio
     async def test_me_returns_current_user(self, client):
-        # Dev-login to get a token
-        email = "harry@example.com"
-        payload = {"email": email}
-        res = await client.post("/auth/dev-login", json=payload)
-        assert res.status_code == 200
+        payload = {"name": "Harry"}
+        res = await client.post("/users", json=payload)
+        assert res.status_code == 201
 
-        data = res.json()
-        token = data["token"]
-        user = data["user"]
-        assert "id" in user and user["id"] > 0
-
-        # Call /users/me with Bearer token
         res = await client.get(
             "/users/me",
-            headers={"Authorization": f"Bearer {token}"},
         )
         assert res.status_code == 200
         me = res.json()
-        assert me["id"] == user["id"]
-        assert me["email"] == email
-        assert me["name"] == "Test User"
+        assert me["name"] == "Harry"
+        assert me["email"] == "harry@example.com"
+        assert me["supabase_user_id"] == "8012611b-e385-463e-b719-1a5b468a6ce5"
+        assert "id" in me
         assert "created_at" in me
 
     @pytest.mark.asyncio
