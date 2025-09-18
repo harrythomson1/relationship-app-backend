@@ -13,15 +13,26 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/dev-login")
 database_dependency = Depends(get_db)
 
 
+async def get_current_claims(token: str = Depends(oauth2_scheme)):
+    try:
+        payload: Mapping[str, Any] = verify_access_token(token)
+        if payload.get("sub") is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return payload
+
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        ) from e
+
+
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    payload,
     db=database_dependency,
 ):
     try:
-        payload: Mapping[str, Any] = verify_access_token(token)
         sub = payload.get("sub")
-        if sub is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
         try:
             user_id = str(sub)
         except (TypeError, ValueError) as e:
