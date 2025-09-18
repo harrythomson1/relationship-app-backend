@@ -10,7 +10,7 @@ from app.api.core.database_connection import get_db
 from app.api.core.security import verify_access_token
 from app.api.repositories.user_repository import UserNotFoundError, UserRepository
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/dev-login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users")
 database_dependency = Depends(get_db)
 
 
