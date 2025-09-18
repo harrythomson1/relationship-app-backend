@@ -1,11 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-from tests.api.test_utils import (
-    _create_authed_relationship,
-    _create_relationship,
-    dev_login,
-)
+from tests.api.test_utils import _create_authed_relationship, _create_relationship, _create_user
 
 
 @pytest.mark.asyncio
@@ -71,7 +67,7 @@ class TestRelationshipsUpdate:
         assert updated["status"] == "active"
 
     async def test_update_relationship_404(self, client: AsyncClient):
-        token, _ = await dev_login(client)
+        token, _ = await _create_user(client)
         patch_payload = {"status": "active", "type": "friendship"}
         headers = {"Authorization": f"Bearer {token}"}
         res = await client.patch("/relationships", json=patch_payload, headers=headers)
@@ -105,8 +101,7 @@ class TestRelationshipsDelete:
         assert relationship.status_code == 200
 
     async def test_delete_relationship_not_found(self, client: AsyncClient):
-        token, _ = await dev_login(client)
-        headers = {"Authorization": f"Bearer {token}"}
-        result = await client.delete("/relationships", headers=headers)
+        token, _ = await _create_user(client)
+        result = await client.delete("/relationships")
         assert result.status_code == 404
         assert result.json()["detail"]["message"] == "Relationship member not found"
