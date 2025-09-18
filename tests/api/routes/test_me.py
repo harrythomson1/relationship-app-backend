@@ -138,23 +138,17 @@ class TestUsersDelete:
 
     @pytest.mark.asyncio
     async def test_delete_user_unauthorized_after_already_deleted(self, client):
-        # Create a user and delete it
-        email = "harry@example.com"
-        login_res = await client.post("/auth/dev-login", json={"email": email})
-        assert login_res.status_code == 200
-        payload = login_res.json()
-        token = payload["token"]
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
 
         first_del = await client.delete(
             "/users/me",
-            headers={"Authorization": f"Bearer {token}"},
         )
         assert first_del.status_code in (200, 204)
 
         # Second delete with the same token should fail auth (user no longer exists)
         second_del = await client.delete(
             "/users/me",
-            headers={"Authorization": f"Bearer {token}"},
         )
-        assert second_del.status_code == 401
-        assert second_del.json()["detail"] == "Could not validate credentials"
+        assert second_del.status_code == 404
+        assert second_del.json()["detail"] == "User not provisioned"
