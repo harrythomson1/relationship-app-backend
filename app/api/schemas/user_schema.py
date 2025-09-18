@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
@@ -8,6 +9,7 @@ class UserSchema(BaseModel):
     email: EmailStr
     name: str
     created_at: datetime
+    supabase_user_id: UUID
 
 
 class UserCreate(BaseModel):
