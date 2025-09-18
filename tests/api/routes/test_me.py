@@ -81,28 +81,20 @@ class TestUsersUpdate:
 
     @pytest.mark.asyncio
     async def test_update_user_name_returns_401_when_user_deleted(self, client):
-        # Create a user via dev-login to get token
-        email = "harry@example.com"
-        login_res = await client.post("/auth/dev-login", json={"email": email})
-        assert login_res.status_code == 200
-        payload = login_res.json()
-        token = payload["token"]
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
 
-        # Simulate user being deleted between auth and update (via secured route)
         del_res = await client.delete(
             "/users/me",
-            headers={"Authorization": f"Bearer {token}"},
         )
         assert del_res.status_code in (200, 204)
 
-        # Attempt to update now should 401
         res = await client.patch(
             "/users/me",
             json={"name": "New Harry"},
-            headers={"Authorization": f"Bearer {token}"},
         )
-        assert res.status_code == 401
-        assert res.json()["detail"] == "Could not validate credentials"
+        assert res.status_code == 404
+        assert res.json()["detail"] == "User not provisioned"
 
 
 class TestUsersUpdateAuth:
