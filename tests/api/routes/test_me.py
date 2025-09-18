@@ -45,7 +45,12 @@ class TestUsersMe:
 
     @pytest.mark.asyncio
     async def test_me_requires_auth(self, client):
-        # No Authorization header
+        async def _override_invalid_email():
+            return {}
+
+        app.dependency_overrides[get_current_claims] = _override_invalid_email
+        res = await client.post("/users", json={"name": "Harry"})
+        app.dependency_overrides.clear()
         res = await client.get("/users/me")
         assert res.status_code == 401
 
