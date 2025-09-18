@@ -54,7 +54,6 @@ class TestUsersMe:
         res = await client.get("/users/me")
         assert res.status_code == 401
 
-        # Malformed/invalid token
         res = await client.get(
             "/users/me",
             headers={"Authorization": "Bearer not-a-real-token"},
@@ -100,6 +99,15 @@ class TestUsersUpdate:
 class TestUsersUpdateAuth:
     @pytest.mark.asyncio
     async def test_update_user_name_requires_auth(self, client):
+        async def _override_invalid_email():
+            return {}
+
+        app.dependency_overrides[get_current_claims] = _override_invalid_email
+        res = await client.post("/users", json={"name": "Harry"})
+        app.dependency_overrides.clear()
+        res = await client.get("/users/me")
+        assert res.status_code == 401
+
         res = await client.patch("/users/me", json={"name": "Nope"})
         assert res.status_code == 401
 
