@@ -11,7 +11,6 @@ class UserSchema(BaseModel):
 
 
 class UserCreate(BaseModel):
-    email: EmailStr
     name: str
 
 
