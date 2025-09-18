@@ -63,7 +63,7 @@ async def _create_authed_relationship(client: AsyncClient):
         "user_ids": [u1["id"], u2["id"]],
     }
     res = await client.post("/relationships", json=payload)
-    return res, "dummy-token"
+    return res
 
 
 async def fake_send_email_factory(calls):

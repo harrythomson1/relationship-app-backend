@@ -63,10 +63,22 @@ class TestRelationshipsUpdate:
         assert updated["status"] == "active"
 
     async def test_update_relationship_404(self, client: AsyncClient):
-        await _create_user(client)
+        user = await _create_user(client)
+        from tests.api.test_utils import _set_claims
+
+        _set_claims(
+            {
+                "sub": str(user["supabase_user_id"]),
+                "email": user["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
         patch_payload = {"status": "active", "type": "friendship"}
         res = await client.patch("/relationships", json=patch_payload)
-        assert res.status_code == 404
+        assert res.status_code == 404, res.text
+        body = res.json()
+        assert body["detail"].get("message") == "Relationship member not found"
 
 
 @pytest.mark.asyncio
