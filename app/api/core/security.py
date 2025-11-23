@@ -2,9 +2,9 @@ import requests
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
 
-JWKS_URL = "https://kzuztavhripyncgxtzhr.supabase.co/auth/v1/.well-known/jwks.json"
+JWKS_URL = "https://lkfhoxaagckacfjpnkqw.supabase.co/auth/v1/.well-known/jwks.json"
 ALGORITHM = "ES256"
-PROJECT_URL = "https://kzuztavhripyncgxtzhr.supabase.co/auth/v1"
+PROJECT_URL = "https://lkfhoxaagckacfjpnkqw.supabase.co/auth/v1"
 AUDIENCE = "authenticated"
 
 
