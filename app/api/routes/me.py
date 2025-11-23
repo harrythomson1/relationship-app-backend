@@ -3,9 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.auth.utils import get_current_claims, get_current_user
 from app.api.core.database_connection import get_db
 from app.api.dependencies import get_users_service
-from app.api.repositories.user_repository import UserNotFoundError
-from app.api.schemas.user_schema import UserSchema, UserUpdate
-from app.api.services.users_service import UsersService
+from app.api.repositories.user_repository import (
+    DuplicateEmailError,
+    UserNotFoundError,
+)
+from app.api.schemas.user_schema import UserCreate, UserSchema, UserUpdate
+from app.api.services.users_service import InvalidEmailError, UsersService
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -17,8 +20,24 @@ user_service_dependency = Depends(get_users_service)
 
 
 @router.get("/me", response_model=UserSchema)
-async def get_me(current_claims=get_current_claims_dependency, db=get_db_dependency):
-    return await get_current_user(current_claims, db)
+async def get_me(
+    current_claims=get_current_claims_dependency,
+    db=get_db_dependency,
+    service: UsersService = user_service_dependency,
+):
+    try:
+        return await get_current_user(current_claims, db)
+    except UserNotFoundError:
+        try:
+            user_info = UserCreate(name=current_claims["email"].split("@")[0])
+            user = await service.add(user_info, current_claims)
+            return user
+        except DuplicateEmailError as e:
+            raise HTTPException(status_code=409, detail={"message": str(e)}) from e
+        except InvalidEmailError as e:
+            raise HTTPException(status_code=422, detail={"message": str(e)}) from e
+        except Exception as e:
+            raise HTTPException(status_code=500, detail={"message": "Internal server error"}) from e
 
 
 @router.patch("/me", response_model=UserSchema)

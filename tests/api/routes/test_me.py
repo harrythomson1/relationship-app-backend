@@ -32,9 +32,7 @@ class TestUsersMe:
         res = await client.post("/users", json=payload)
         assert res.status_code == 201
 
-        res = await client.get(
-            "/users/me",
-        )
+        res = await client.get("/users/me")
         assert res.status_code == 200
         me = res.json()
         assert me["name"] == "Harry"
