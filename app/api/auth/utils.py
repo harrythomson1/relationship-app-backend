@@ -44,4 +44,4 @@ async def get_current_user(
         user = await repo.get_by_supabase_user_id(supabase_user_id)
         return user
     except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail="User not provisioned") from e
+        raise UserNotFoundError("User not found") from e
