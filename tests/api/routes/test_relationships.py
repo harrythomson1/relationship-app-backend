@@ -7,7 +7,7 @@ from tests.api.test_utils import _create_authed_relationship, _create_relationsh
 @pytest.mark.asyncio
 class TestRelationshipsCreate:
     async def test_create_relationship_success(self, client: AsyncClient):
-        res = await _create_relationship(client)
+        res = await _create_authed_relationship(client)
         assert res.status_code == 201, res.text
         body = res.json()
         assert body["id"] > 0
