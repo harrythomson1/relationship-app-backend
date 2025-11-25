@@ -2,6 +2,7 @@ import pytest
 
 from app.api.auth.utils import get_current_claims
 from app.api.main import app
+from app.api.repositories.user_repository import UserNotFoundError
 
 
 @pytest.fixture
@@ -86,12 +87,11 @@ class TestUsersUpdate:
         )
         assert del_res.status_code in (200, 204)
 
-        res = await client.patch(
-            "/users/me",
-            json={"name": "New Harry"},
-        )
-        assert res.status_code == 404
-        assert res.json()["detail"] == "User not provisioned"
+        with pytest.raises(UserNotFoundError):
+            await client.patch(
+                "/users/me",
+                json={"name": "New Harry"},
+            )
 
 
 class TestUsersUpdateAuth:
@@ -144,9 +144,7 @@ class TestUsersDelete:
         )
         assert first_del.status_code in (200, 204)
 
-        # Second delete with the same token should fail auth (user no longer exists)
-        second_del = await client.delete(
-            "/users/me",
-        )
-        assert second_del.status_code == 404
-        assert second_del.json()["detail"] == "User not provisioned"
+        with pytest.raises(UserNotFoundError):
+            await client.delete(
+                "/users/me",
+            )
