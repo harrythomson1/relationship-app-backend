@@ -34,13 +34,13 @@ async def _create_user(client: AsyncClient, *, name: str = "Test User"):
 
 
 async def _create_relationship(client: AsyncClient):
-    u1 = await _create_user(client)
+    await _create_user(client)
     u2 = await _create_user(client)
     payload = {
         "type": "romantic",
         "status": "pending",
         "role": "partner",
-        "user_ids": [u1["id"], u2["id"]],
+        "partner_email": u2["email"],
     }
     return await client.post("/relationships", json=payload)
 
@@ -60,7 +60,7 @@ async def _create_authed_relationship(client: AsyncClient):
         "type": "romantic",
         "status": "pending",
         "role": "partner",
-        "user_ids": [u1["id"], u2["id"]],
+        "partner_email": u2["email"],
     }
     res = await client.post("/relationships", json=payload)
     return res
