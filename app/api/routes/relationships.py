@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.auth.utils import get_current_user
-from app.api.dependencies import get_relationships_service
+from app.api.dependencies import get_relationships_service, get_users_service
 from app.api.repositories.relationship_repository import (
     RelationshipMemberNotFoundError,
     RelationshipNotFoundError,
@@ -13,9 +13,11 @@ from app.api.schemas.relationship_schema import (
     RelationshipUpdate,
 )
 from app.api.services.relationships_service import RelationshipsService
+from app.api.services.users_service import UsersService
 
 router = APIRouter()
 relationship_service_dependency = Depends(get_relationships_service)
+users_service_dependency = Depends(get_users_service)
 get_current_user_dependency = Depends(get_current_user)
 
 
@@ -25,8 +27,10 @@ get_current_user_dependency = Depends(get_current_user)
 async def add_relationship(
     relationship_info: RelationshipCreate,
     service: RelationshipsService = relationship_service_dependency,
+    users_service: UsersService = users_service_dependency,
+    current_user=get_current_user_dependency,
 ):
-    relationship = await service.add(relationship_info)
+    relationship = await service.add(current_user, relationship_info, users_service)
     return relationship
 
 
