@@ -1,7 +1,12 @@
 import pytest
 from httpx import AsyncClient
 
-from tests.api.test_utils import _create_authed_relationship, _create_relationship, _create_user
+from tests.api.test_utils import (
+    _create_authed_relationship,
+    _create_relationship,
+    _create_user,
+    _set_claims,
+)
 
 
 @pytest.mark.asyncio
@@ -41,6 +46,15 @@ class TestRelationshipsGet:
     async def test_unauthorized_user(self, client: AsyncClient):
         await _create_authed_relationship(client)
         rel_2 = await _create_relationship(client)
+
+        _set_claims(
+            {
+                "sub": "not the authed user",
+                "email": "random@email.com",
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
         rel_2_id = rel_2.json()["id"]
         get_res = await client.get(f"/relationships/{rel_2_id}")
         assert get_res.status_code == 401
@@ -64,7 +78,6 @@ class TestRelationshipsUpdate:
 
     async def test_update_relationship_404(self, client: AsyncClient):
         user = await _create_user(client)
-        from tests.api.test_utils import _set_claims
 
         _set_claims(
             {
