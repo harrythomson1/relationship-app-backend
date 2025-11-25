@@ -6,18 +6,18 @@ class RelationshipsService:
         self.repository = repository
         self.db = db
 
-    async def add(self, relationship_info):
+    async def add(self, current_user, relationship_info, user_service):
+        partner = await user_service.get_by_email(relationship_info.partner_email)
         async with self.db.begin_nested():
-            u1, u2 = relationship_info.user_ids
-            if u1 == u2:
+            if current_user.id == partner.id:
                 raise ValueError("A relationship must have two distinct users")
             rel = Relationship(type=relationship_info.type, status=relationship_info.status)
             rel = await self.repository.add_relationship(rel)
             rel_member_1 = RelationshipMember(
-                relationship_id=rel.id, user_id=u1, role=relationship_info.role
+                relationship_id=rel.id, user_id=current_user.id, role=relationship_info.role
             )
             rel_member_2 = RelationshipMember(
-                relationship_id=rel.id, user_id=u2, role=relationship_info.role
+                relationship_id=rel.id, user_id=partner.id, role=relationship_info.role
             )
             await self.repository.add_relationship_members(rel_member_1)
             await self.repository.add_relationship_members(rel_member_2)

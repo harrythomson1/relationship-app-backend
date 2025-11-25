@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from app.api.models import MemberRole, RelationshipStatus, RelationshipType
 
@@ -17,7 +16,7 @@ class RelationshipSchema(BaseModel):
 class RelationshipCreate(BaseModel):
     type: RelationshipType = RelationshipType.romantic
     status: RelationshipStatus = RelationshipStatus.pending
-    user_ids: Annotated[list[int], Field(min_length=2, max_length=2)]
+    partner_email: EmailStr
     role: MemberRole = MemberRole.partner
 
 
