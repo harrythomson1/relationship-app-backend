@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from httpx import AsyncClient
 
@@ -7,6 +9,12 @@ from tests.api.test_utils import (
     _set_claims,
     fake_send_email_factory,
 )
+
+
+@pytest.fixture(autouse=True)
+def set_test_env(monkeypatch):
+    monkeypatch.setenv("GMAIL_APP_PASSWORD", "test_value")
+    monkeypatch.setenv("APP_EMAIL", "no-reply@test.app")
 
 
 class TestRelationshipInvite:
@@ -30,7 +38,7 @@ class TestRelationshipInvite:
         res = await client.post("/relationships/invites", json={"invitee_email": user_2["email"]})
         assert res.status_code == 201, res.text
         assert len(calls) == 1
-        assert calls[0]["sender"] == user["email"]
+        assert calls[0]["sender"] == os.environ.get("APP_EMAIL")
         assert calls[0]["receiver"] == user_2["email"]
         assert calls[0]["subject"] == "Let's connect"
         assert calls[0]["content"] == "Hello, I want to add you to the relationship"
