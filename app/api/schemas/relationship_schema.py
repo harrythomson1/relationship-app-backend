@@ -15,7 +15,7 @@ class RelationshipSchema(BaseModel):
 
 class RelationshipCreate(BaseModel):
     type: RelationshipType = RelationshipType.romantic
-    status: RelationshipStatus = RelationshipStatus.pending
+    status: RelationshipStatus = RelationshipStatus.active
     invite_token: str
     role: MemberRole = MemberRole.partner
 
