@@ -24,7 +24,6 @@ class RelationshipType(enum.Enum):
 class RelationshipStatus(enum.Enum):
     active = "active"
     inactive = "inactive"
-    pending = "pending"
     ended = "ended"
 
 
@@ -63,7 +62,7 @@ class Relationship(Base):
     )
     status: Mapped[RelationshipStatus] = mapped_column(
         SAEnum(RelationshipStatus, name="relationship_status"),
-        default=RelationshipStatus.pending,
+        default=RelationshipStatus.active,
         nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
