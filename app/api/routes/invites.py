@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.api.auth.utils import get_current_user
@@ -29,7 +31,7 @@ async def add_relationship_invite(
         relationship_invite = await service.add(relationship_invite_info, current_user)
         background.add_task(
             mailer.send_email,
-            sender=current_user.email,
+            sender=os.environ.get("APP_EMAIL"),
             receiver=relationship_invite_info.invitee_email,
             subject="Let's connect",
             content="Hello, I want to add you to the relationship",
