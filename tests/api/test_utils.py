@@ -67,11 +67,11 @@ async def _create_relationship_invite(client: AsyncClient, inviter=None, invitee
 
 
 async def _create_authed_relationship(client: AsyncClient):
-    u1 = await _create_user(client)
+    res, inviter, invitee = await _create_relationship_invite(client)
     _set_claims(
         {
-            "sub": str(u1.get("supabase_user_id")),
-            "email": u1.get("email"),
+            "sub": str(invitee.get("supabase_user_id")),
+            "email": invitee.get("email"),
             "aud": "authenticated",
             "iss": "https://fakereference.supabase.co/auth/v1",
         }
@@ -80,7 +80,7 @@ async def _create_authed_relationship(client: AsyncClient):
         "type": "romantic",
         "status": "pending",
         "role": "partner",
-        "invite_token": "testToken",
+        "invite_token": res.json()["token"],
     }
     res = await client.post("/relationships", json=payload)
     return res

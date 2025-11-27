@@ -7,6 +7,10 @@ class DuplicateInviteError(Exception):
     pass
 
 
+class RelationshipInviteNotFoundError(Exception):
+    pass
+
+
 class RelationshipInviteRepository:
     def __init__(self, db):
         self.db = db
@@ -23,4 +27,12 @@ class RelationshipInviteRepository:
         self.db.add(invite)
         await self.db.commit()
         await self.db.refresh(invite)
+        return invite
+
+    async def get_by_token(self, token):
+        query = select(Invite).where(token == token)
+        result = await self.db.execute(query)
+        invite = result.scalars().first()
+        if not invite:
+            raise RelationshipInviteNotFoundError("Relationship invite not found")
         return invite

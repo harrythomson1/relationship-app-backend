@@ -12,3 +12,6 @@ class RelationshipInvitesService:
             inviter_email=user.email,
         )
         return await self.repository.add(invite, user.id)
+
+    async def get_by_token(self, token):
+        return await self.repository.get_by_token(token)

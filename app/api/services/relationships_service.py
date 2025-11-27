@@ -1,13 +1,20 @@
 from app.api.models import Relationship, RelationshipMember
 
 
+class InvalidInviteUserError(Exception):
+    pass
+
+
 class RelationshipsService:
     def __init__(self, repository, db):
         self.repository = repository
         self.db = db
 
-    async def add(self, current_user, relationship_info, user_service):
-        partner = await user_service.get_by_email(relationship_info.partner_email)
+    async def add(self, current_user, relationship_info, user_service, relationship_invite_service):
+        invite = await relationship_invite_service.get_by_token(relationship_info.invite_token)
+        partner = await user_service.get_by_email(invite.inviter_email)
+        if current_user.email != invite.invitee_email:
+            raise InvalidInviteUserError("Current user does not match user from the invite")
         async with self.db.begin_nested():
             if current_user.id == partner.id:
                 raise ValueError("A relationship must have two distinct users")

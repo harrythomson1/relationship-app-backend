@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict
 
 from app.api.models import MemberRole, RelationshipStatus, RelationshipType
 
@@ -16,7 +16,7 @@ class RelationshipSchema(BaseModel):
 class RelationshipCreate(BaseModel):
     type: RelationshipType = RelationshipType.romantic
     status: RelationshipStatus = RelationshipStatus.pending
-    partner_email: EmailStr
+    invite_token: str
     role: MemberRole = MemberRole.partner
 
 
