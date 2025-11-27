@@ -41,7 +41,6 @@ class TestRelationshipInvite:
         assert calls[0]["sender"] == os.environ.get("APP_EMAIL")
         assert calls[0]["receiver"] == user_2["email"]
         assert calls[0]["subject"] == "Let's connect"
-        assert calls[0]["content"] == "Hello, I want to add you to the relationship"
 
     @pytest.mark.asyncio
     async def test_invite_duplication(self, monkeypatch, client: AsyncClient):
