@@ -5,8 +5,7 @@ from httpx import AsyncClient
 
 from app.api.utils import mailer
 from tests.api.test_utils import (
-    _create_user,
-    _set_claims,
+    _create_relationship_invite,
     fake_send_email_factory,
 )
 
@@ -23,42 +22,23 @@ class TestRelationshipInvite:
         calls = []
         monkeypatch.setattr(mailer, "send_email", await fake_send_email_factory(calls))
 
-        user = await _create_user(client)
-        user_2 = await _create_user(client)
+        res, inviter, invitee = await _create_relationship_invite(client)
 
-        _set_claims(
-            {
-                "sub": str(user["supabase_user_id"]),
-                "email": user["email"],
-                "aud": "authenticated",
-                "iss": "https://fakereference.supabase.co/auth/v1",
-            }
-        )
-
-        res = await client.post("/relationships/invites", json={"invitee_email": user_2["email"]})
         assert res.status_code == 201, res.text
         assert len(calls) == 1
         assert calls[0]["sender"] == os.environ.get("APP_EMAIL")
-        assert calls[0]["receiver"] == user_2["email"]
+        assert calls[0]["receiver"] == invitee["email"]
         assert calls[0]["subject"] == "Let's connect"
 
     @pytest.mark.asyncio
     async def test_invite_duplication(self, monkeypatch, client: AsyncClient):
         calls = []
         monkeypatch.setattr(mailer, "send_email", await fake_send_email_factory(calls))
-        user = await _create_user(client)
-        user_2 = await _create_user(client)
-        _set_claims(
-            {
-                "sub": str(user["supabase_user_id"]),
-                "email": user["email"],
-                "aud": "authenticated",
-                "iss": "https://fakereference.supabase.co/auth/v1",
-            }
-        )
-        res = await client.post("/relationships/invites", json={"invitee_email": user_2["email"]})
+
+        res, inviter, invitee = await _create_relationship_invite(client)
+
         assert res.status_code == 201, res.text
-        res = await client.post("/relationships/invites", json={"invitee_email": user_2["email"]})
+        res = await client.post("/relationships/invites", json={"invitee_email": invitee["email"]})
         assert res.status_code == 409
         assert res.json()["detail"]["message"] == "Invite already exists"
         assert len(calls) == 1
