@@ -25,6 +25,8 @@ from app.api.core.database_connection import get_db  # your normal dependency
 
 # ---- Your app imports
 from app.api.main import app as fastapi_app
+from app.api.utils import mailer
+from tests.api.test_utils import fake_send_email_factory
 
 
 def _ensure_database_exists(sync_url: str) -> None:
@@ -141,3 +143,10 @@ async def client(app: FastAPI, db_session: AsyncSession):
             yield ac
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def auto_fake_email(monkeypatch):
+    send_emails = []
+    monkeypatch.setattr(mailer, "send_email", await fake_send_email_factory(send_emails))
+    yield send_emails

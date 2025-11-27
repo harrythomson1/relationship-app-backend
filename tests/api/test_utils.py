@@ -68,7 +68,6 @@ async def _create_relationship_invite(client: AsyncClient, inviter=None, invitee
 
 async def _create_authed_relationship(client: AsyncClient):
     u1 = await _create_user(client)
-    u2 = await _create_user(client)
     _set_claims(
         {
             "sub": str(u1.get("supabase_user_id")),
@@ -81,7 +80,7 @@ async def _create_authed_relationship(client: AsyncClient):
         "type": "romantic",
         "status": "pending",
         "role": "partner",
-        "partner_email": u2["email"],
+        "invite_token": "testToken",
     }
     res = await client.post("/relationships", json=payload)
     return res
