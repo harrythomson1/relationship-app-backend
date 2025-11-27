@@ -133,6 +133,7 @@ class Invite(Base):
     role: Mapped[MemberRole] = mapped_column(
         SAEnum(MemberRole, name="member_role"), default=MemberRole.partner, nullable=False
     )
+    inviter_email: Mapped[str] = mapped_column(String(320), nullable=False)
     status: Mapped[InviteStatus] = mapped_column(
         SAEnum(InviteStatus, name="invite_status"),
         default=InviteStatus.pending,
