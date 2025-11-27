@@ -28,7 +28,8 @@ class RelationshipsService:
             )
             await self.repository.add_relationship_members(rel_member_1)
             await self.repository.add_relationship_members(rel_member_2)
-            return rel
+        await self.db.commit()
+        return rel
 
     async def get_by_id(self, id, current_user):
         rel = await self.repository.get_by_id(id, current_user)
