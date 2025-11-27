@@ -11,7 +11,7 @@ async def send_email(sender, receiver, subject, content):
     message["From"] = sender
     message["To"] = receiver
     message["Subject"] = subject
-    message.set_content(content)
+    message.set_content(content, subtype="html")
 
     try:
         tls_context = ssl.create_default_context(cafile=certifi.where())

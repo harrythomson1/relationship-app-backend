@@ -29,12 +29,19 @@ async def add_relationship_invite(
 ):
     try:
         relationship_invite = await service.add(relationship_invite_info, current_user)
+        html_content = """
+<p>Hello, I want to add you to the relationship.</p>
+<p>
+Please follow this link to accept:
+<a href="relationshipappfrontend://profile">Open in app</a> relationshipappfrontend://profile
+</p>
+"""
         background.add_task(
             mailer.send_email,
             sender=os.environ.get("APP_EMAIL"),
             receiver=relationship_invite_info.invitee_email,
             subject="Let's connect",
-            content="Hello, I want to add you to the relationship",
+            content=html_content,
         )
         return relationship_invite
     except DuplicateInviteError as e:
