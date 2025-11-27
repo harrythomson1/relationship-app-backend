@@ -29,11 +29,11 @@ async def add_relationship_invite(
 ):
     try:
         relationship_invite = await service.add(relationship_invite_info, current_user)
-        html_content = """
+        html_content = f"""
 <p>Hello, I want to add you to the relationship.</p>
 <p>
 Please follow this link to accept:
-<a href="relationshipappfrontend://profile">Open in app</a> relationshipappfrontend://profile
+<a href="relationshipappfrontend://profile">Open in app</a> relationshipappfrontend://relationship/invite?token={relationship_invite.token}
 </p>
 """
         background.add_task(
