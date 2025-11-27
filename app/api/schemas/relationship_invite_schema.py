@@ -11,6 +11,7 @@ class RelationshipInviteSchema(BaseModel):
     token: uuid.UUID
     relaitionship_id: int | None = None
     inviter_user_id: int | None = None
+    inviter_email: str
     invitee_user_id: int | None = None
     invitee_email: str
     role: MemberRole
