@@ -50,6 +50,7 @@ class User(Base):
         server_onupdate=func.now(),
         nullable=False,
     )
+    time_zone: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
 
 class Relationship(Base):
