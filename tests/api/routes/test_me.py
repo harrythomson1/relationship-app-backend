@@ -107,6 +107,20 @@ class TestUsersUpdate:
         body = res.json()
         assert body["time_zone"] == "Europe/London"
 
+    @pytest.mark.asyncio
+    async def test_update_not_a_real_timez_zone(self, client):
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
+
+        update_payload = {"time_zone": "Not a real time zone"}
+        res = await client.patch(
+            "/users/me",
+            json=update_payload,
+        )
+        assert res.status_code == 422
+        body = res.json()
+        assert body["detail"][0]["msg"] == "Value error, Timezone is invalid"
+
 
 class TestUsersUpdateAuth:
     @pytest.mark.asyncio
