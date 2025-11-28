@@ -136,6 +136,20 @@ class TestUsersUpdate:
         assert body["time_zone"] == "Europe/London"
         assert body["name"] == "New Harry"
 
+    @pytest.mark.asyncio
+    async def test_updates_unallowed_fields_decline(self, client):
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
+
+        update_payload = {"id": "1"}
+        res = await client.patch(
+            "/users/me",
+            json=update_payload,
+        )
+        assert res.status_code == 422
+        body = res.json()
+        assert body["detail"][0]["msg"] == "Extra inputs are not permitted"
+
 
 class TestUsersUpdateAuth:
     @pytest.mark.asyncio
