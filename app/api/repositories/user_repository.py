@@ -54,12 +54,13 @@ class UserRepository:
     async def update(self, id, update_data):
         result = await self.db.execute(select(User).where(User.id == id))
         user = result.scalar_one_or_none()
+        data = update_data.model_dump(exclude_unset=True)
 
         if not user:
             raise UserNotFoundError("User not found")
 
-        if update_data.name is not None:
-            user.name = update_data.name
+        for key, value in data.items():
+            setattr(user, key, value)
 
         await self.db.commit()
         await self.db.refresh(user)
