@@ -38,7 +38,7 @@ async def _create_relationship(client: AsyncClient):
     u2 = await _create_user(client)
     payload = {
         "type": "romantic",
-        "status": "pending",
+        "status": "active",
         "role": "partner",
         "partner_email": u2["email"],
     }
@@ -78,7 +78,7 @@ async def _create_authed_relationship(client: AsyncClient):
     )
     payload = {
         "type": "romantic",
-        "status": "pending",
+        "status": "active",
         "role": "partner",
         "invite_token": res.json()["token"],
     }

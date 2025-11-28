@@ -16,7 +16,7 @@ class TestRelationshipsCreate:
         body = res.json()
         assert body["id"] > 0
         assert body["type"] == "romantic"
-        assert body["status"] == "pending"
+        assert body["status"] == "active"
         assert "created_at" in body
         assert "updated_at" in body
 
@@ -33,7 +33,7 @@ class TestRelationshipsGet:
         body = get_res.json()
         assert body["id"] == rel_id
         assert body["type"] == "romantic"
-        assert body["status"] == "pending"
+        assert body["status"] == "active"
 
     async def test_get_relationship_404(self, client: AsyncClient):
         await _create_authed_relationship(client)
