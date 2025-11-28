@@ -93,6 +93,20 @@ class TestUsersUpdate:
                 json={"name": "New Harry"},
             )
 
+    @pytest.mark.asyncio
+    async def test_update_time_zone_successfully(self, client):
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
+
+        update_payload = {"time_zone": "Europe/London"}
+        res = await client.patch(
+            "/users/me",
+            json=update_payload,
+        )
+        assert res.status_code == 200
+        body = res.json()
+        assert body["time_zone"] == "Europe/London"
+
 
 class TestUsersUpdateAuth:
     @pytest.mark.asyncio
