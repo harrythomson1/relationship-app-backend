@@ -121,6 +121,21 @@ class TestUsersUpdate:
         body = res.json()
         assert body["detail"][0]["msg"] == "Value error, Timezone is invalid"
 
+    @pytest.mark.asyncio
+    async def test_updates_mutiple_fields_sucessfully(self, client):
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
+
+        update_payload = {"time_zone": "Europe/London", "name": "New Harry"}
+        res = await client.patch(
+            "/users/me",
+            json=update_payload,
+        )
+        assert res.status_code == 200
+        body = res.json()
+        assert body["time_zone"] == "Europe/London"
+        assert body["name"] == "New Harry"
+
 
 class TestUsersUpdateAuth:
     @pytest.mark.asyncio
