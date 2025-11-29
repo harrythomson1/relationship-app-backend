@@ -6,9 +6,9 @@ class InvalidInviteUserError(Exception):
 
 
 class RelationshipsService:
-    def __init__(self, relationship_repository, db, user_repo=None):
+    def __init__(self, relationship_repository, db, user_repository):
         self.relationship_repository = relationship_repository
-        self.user_repo = user_repo
+        self.user_repository = user_repository
         self.db = db
 
     async def add(self, current_user, relationship_info, user_service, relationship_invite_service):
@@ -32,8 +32,10 @@ class RelationshipsService:
         await self.db.commit()
         return rel
 
-    # async def get_partner_time_zone(self, current_user):
-    #     partner = await self.relationship_repository.get_partner(current_user)
+    async def get_partner_time_zone(self, current_user):
+        partner_member = await self.relationship_repository.get_partner(current_user)
+        partner = await self.user_repository.get_by_id(partner_member.user_id)
+        return {"time_zone": partner.time_zone, "name": partner.name}
 
     async def get_by_id(self, id, current_user):
         rel = await self.relationship_repository.get_by_id(id, current_user)
