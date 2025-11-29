@@ -47,6 +47,26 @@ class RelationshipRepository:
         await self.db.flush()
         return relationship_member
 
+    async def get_partner(self, current_user):
+        result = await self.db.execute(
+            select(RelationshipMember).where(RelationshipMember.user_id == current_user.id)
+        )
+        existing = result.scalar_one_or_none()
+        if not existing:
+            raise RelationshipMemberNotFoundError("Relationship member not found")
+        result = await self.db.execute(
+            select(RelationshipMember).where(
+                RelationshipMember.relationship_id == existing.relationship_id
+            )
+        )
+        rows = result.scalars().all()
+        if not rows:
+            raise RelationshipMemberNotFoundError("Relationship member not found")
+        partner = next(
+            (rel_member for rel_member in rows if rel_member.user_id != current_user.id), None
+        )
+        return partner
+
     async def get_by_id(self, id, current_user):
         query = select(Relationship).where(Relationship.id == id)
         result = await self.db.execute(query)
