@@ -23,7 +23,7 @@ async def _create_user(client: AsyncClient, *, name: str = "Test User"):
     }
     try:
         _set_claims(new_claims)
-        res = await client.post("/users", json={"name": name})
+        res = await client.post("/users", json={"name": "Test Name", "time_zone": "Europe/London"})
         assert res.status_code == 201, res.text
         return res.json()
     finally:
