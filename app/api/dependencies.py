@@ -34,9 +34,13 @@ async def get_users_service(user_repostitory=user_repository_dependency):
 
 
 async def get_relationships_service(
-    db=db_dependency, relationship_repository=relationship_repository_dependency
+    db=db_dependency,
+    relationship_repository=relationship_repository_dependency,
+    user_repository=user_repository_dependency,
 ):
-    return RelationshipsService(relationship_repository, db)
+    return RelationshipsService(
+        relationship_repository=relationship_repository, db=db, user_repository=user_repository
+    )
 
 
 async def get_relationship_invites_service(
