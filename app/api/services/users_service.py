@@ -18,7 +18,12 @@ class UsersService:
                 "value is not a valid email address: An email address must have an @-sign."
             )
         email = email.lower().strip()
-        user = User(name=user_info.name, email=email, supabase_user_id=claims["sub"])
+        user = User(
+            name=user_info.name,
+            email=email,
+            supabase_user_id=claims["sub"],
+            time_zone=user_info.time_zone,
+        )
         return await self.repository.add(user)
 
     async def get_by_id(self, id):
