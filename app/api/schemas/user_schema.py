@@ -16,6 +16,7 @@ class UserSchema(BaseModel):
 
 class UserCreate(BaseModel):
     name: str
+    time_zone: str | None
 
 
 class UserUpdate(BaseModel):
