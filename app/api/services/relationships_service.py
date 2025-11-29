@@ -6,8 +6,9 @@ class InvalidInviteUserError(Exception):
 
 
 class RelationshipsService:
-    def __init__(self, relationship_repository, db):
+    def __init__(self, relationship_repository, db, user_repo=None):
         self.relationship_repository = relationship_repository
+        self.user_repo = user_repo
         self.db = db
 
     async def add(self, current_user, relationship_info, user_service, relationship_invite_service):
