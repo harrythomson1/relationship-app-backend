@@ -23,7 +23,6 @@ user_service_dependency = Depends(get_users_service)
 async def get_me(
     current_claims=get_current_claims_dependency,
     db=get_db_dependency,
-    service: UsersService = user_service_dependency,
 ):
     try:
         return await get_current_user(current_claims, db)
