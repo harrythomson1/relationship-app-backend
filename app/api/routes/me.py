@@ -7,7 +7,7 @@ from app.api.repositories.user_repository import (
     DuplicateEmailError,
     UserNotFoundError,
 )
-from app.api.schemas.user_schema import UserCreate, UserSchema, UserUpdate
+from app.api.schemas.user_schema import UserSchema, UserUpdate
 from app.api.services.users_service import InvalidEmailError, UsersService
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -27,17 +27,14 @@ async def get_me(
 ):
     try:
         return await get_current_user(current_claims, db)
-    except UserNotFoundError:
-        try:
-            user_info = UserCreate(name=current_claims["email"].split("@")[0])
-            user = await service.add(user_info, current_claims)
-            return user
-        except DuplicateEmailError as e:
-            raise HTTPException(status_code=409, detail={"message": str(e)}) from e
-        except InvalidEmailError as e:
-            raise HTTPException(status_code=422, detail={"message": str(e)}) from e
-        except Exception as e:
-            raise HTTPException(status_code=500, detail={"message": "Internal server error"}) from e
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    except DuplicateEmailError as e:
+        raise HTTPException(status_code=409, detail={"message": str(e)}) from e
+    except InvalidEmailError as e:
+        raise HTTPException(status_code=422, detail={"message": str(e)}) from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"message": "Internal server error"}) from e
 
 
 @router.patch("/me", response_model=UserSchema)
