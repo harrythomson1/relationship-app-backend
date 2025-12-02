@@ -49,6 +49,11 @@ class RelationshipsService:
         partner = await self.user_repository.get_by_id(partner_member.user_id)
         return {"time_zone": partner.time_zone, "name": partner.name}
 
+    async def get_partner(self, current_user):
+        partner_member = await self.relationship_repository.get_partner(current_user)
+        partner = await self.user_repository.get_by_id(partner_member.user_id)
+        return partner
+
     async def get_by_id(self, realtionship_id, user_id):
         rel = await self.relationship_repository.get_by_id(realtionship_id, user_id)
         return rel

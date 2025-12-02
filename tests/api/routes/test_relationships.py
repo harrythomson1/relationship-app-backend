@@ -150,3 +150,16 @@ class TestRelationshipsDelete:
         result = await client.delete("/relationships")
         assert result.status_code == 404, result.text
         assert result.json()["detail"]["message"] == "Relationship member not found"
+
+
+@pytest.mark.asyncio
+class TestRelationshipsPartnerGet:
+    async def test_get_relationship_partner_success(self, client: AsyncClient):
+        res = await _create_authed_relationship(client)
+        assert res.status_code == 201
+
+        res = await client.get("/relationships/partner")
+        assert res.status_code == 200, res.text
+        body = res.json()
+        assert body["name"] == "Test Name"
+        assert body["time_zone"] == "Europe/London"

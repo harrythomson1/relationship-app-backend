@@ -19,6 +19,11 @@ class UserCreate(BaseModel):
     time_zone: str | None = None
 
 
+class PartnerSchema(BaseModel):
+    name: str
+    time_zone: str
+
+
 class UserUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str | None = None
