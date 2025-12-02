@@ -7,6 +7,7 @@ from app.api.dependencies import (
     get_users_service,
 )
 from app.api.repositories.relationship_repository import (
+    DuplicateEntryError,
     RelationshipMemberNotFoundError,
     RelationshipNotFoundError,
     UserNotAMemberOfRelationshipError,
@@ -44,6 +45,8 @@ async def add_relationship(
         return relationship
     except InvalidInviteUserError as e:
         raise HTTPException(status_code=403, detail={"message": str(e)}) from e
+    except DuplicateEntryError as e:
+        raise HTTPException(status_code=409, detail={"message": str(e)}) from e
 
 
 @router.get("/relationships/{id}", response_model=RelationshipSchema)

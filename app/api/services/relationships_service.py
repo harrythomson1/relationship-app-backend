@@ -1,4 +1,9 @@
 from app.api.models import Relationship, RelationshipMember
+from app.api.repositories.relationship_repository import (
+    DuplicateEntryError,
+    RelationshipMemberNotFoundError,
+    RelationshipNotFoundError,
+)
 
 
 class InvalidInviteUserError(Exception):
@@ -14,6 +19,13 @@ class RelationshipsService:
     async def add(self, current_user, relationship_info, user_service, relationship_invite_service):
         invite = await relationship_invite_service.get_by_token(relationship_info.invite_token)
         partner = await user_service.get_by_email(invite.inviter_email)
+        try:
+            await self.relationship_repository.get_existing_relationship_between_users(
+                current_user.id, partner.id
+            )
+            raise DuplicateEntryError("A relationship between these users already exists")
+        except (RelationshipNotFoundError, RelationshipMemberNotFoundError):
+            pass
         if current_user.email != invite.invitee_email:
             raise InvalidInviteUserError("Current user does not match user from the invite")
         async with self.db.begin_nested():

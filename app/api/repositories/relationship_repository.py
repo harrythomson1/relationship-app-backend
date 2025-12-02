@@ -109,7 +109,7 @@ class RelationshipRepository:
         partner_member = await self._get_relationship_member_by_id(partner_id)
         if partner_member.relationship_id != user_member.relationship_id:
             raise RelationshipNotFoundError("Relationship between these users does not exist")
-        relationship = await self.get_by_id(current_user_id, user_member.relationship_id)
+        relationship = await self.get_by_id(user_member.relationship_id, current_user_id)
         return relationship
 
     async def _get_by_user_id(self, user_id):
