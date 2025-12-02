@@ -1,12 +1,35 @@
 import pytest
 from httpx import AsyncClient
 
+from app.api.main import app
 from tests.api.test_utils import (
     _create_authed_relationship,
     _create_duplicate_relationship,
     _create_user,
     _set_claims,
+    get_current_claims,
 )
+
+
+@pytest.fixture
+def claims():
+    return {
+        "sub": "8012611b-e385-463e-b719-1a5b468a6ce5",
+        "email": "harry@example.com",
+        "aud": "authenticated",
+        "iss": "https://fakereference.supabase.co/auth/v1",
+    }
+
+
+@pytest.fixture(autouse=True)
+def override_claims(claims):
+    # Make every test “authenticated” by default
+    async def _override():
+        return claims
+
+    app.dependency_overrides[get_current_claims] = _override
+    yield
+    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -163,3 +186,17 @@ class TestRelationshipsPartnerGet:
         body = res.json()
         assert body["name"] == "Test Name"
         assert body["time_zone"] == "Europe/London"
+
+    async def test_no_partner_found(self, client: AsyncClient):
+        user = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(user.get("supabase_user_id")),
+                "email": user.get("email"),
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.get("/relationships/partner")
+        assert res.status_code == 404
+        assert res.json()["detail"].get("message") == "Relationship member not found"
