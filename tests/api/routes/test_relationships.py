@@ -3,6 +3,7 @@ from httpx import AsyncClient
 
 from tests.api.test_utils import (
     _create_authed_relationship,
+    _create_duplicate_relationship,
     _create_user,
     _set_claims,
 )
@@ -19,6 +20,14 @@ class TestRelationshipsCreate:
         assert body["status"] == "active"
         assert "created_at" in body
         assert "updated_at" in body
+
+    async def test_create_relationship_cannot_create_duplicates(self, client: AsyncClient):
+        res = await _create_duplicate_relationship(client)
+        assert res.status_code == 409
+        assert (
+            res.json()["detail"].get("message")
+            == "A relationship between these users already exists"
+        )
 
 
 @pytest.mark.asyncio
