@@ -86,6 +86,27 @@ async def _create_authed_relationship(client: AsyncClient):
     return res
 
 
+async def _create_duplicate_relationship(client: AsyncClient):
+    res, inviter, invitee = await _create_relationship_invite(client)
+    _set_claims(
+        {
+            "sub": str(invitee.get("supabase_user_id")),
+            "email": invitee.get("email"),
+            "aud": "authenticated",
+            "iss": "https://fakereference.supabase.co/auth/v1",
+        }
+    )
+    payload = {
+        "type": "romantic",
+        "status": "active",
+        "role": "partner",
+        "invite_token": res.json()["token"],
+    }
+    await client.post("/relationships", json=payload)
+    res = await client.post("/relationships", json=payload)
+    return res
+
+
 async def fake_send_email_factory(calls):
     async def _fake_send_email(sender, receiver, subject, content):
         calls.append(
