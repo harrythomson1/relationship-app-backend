@@ -105,13 +105,7 @@ class RelationshipRepository:
         return True
 
     async def _get_by_user_id(self, user_id):
-        result = await self.db.execute(
-            select(RelationshipMember).where(RelationshipMember.user_id == user_id)
-        )
-        relationship_member = result.scalar_one_or_none()
-
-        if not relationship_member:
-            raise RelationshipMemberNotFoundError("Relationship member not found")
+        relationship_member = await self._get_relationship_member_by_id(user_id)
 
         result = await self.db.execute(
             select(Relationship).where(Relationship.id == relationship_member.relationship_id)
@@ -120,3 +114,11 @@ class RelationshipRepository:
         if not relationship:
             raise RelationshipNotFoundError("Relationship not found")
         return relationship
+
+    async def _get_relationship_member_by_id(self, id):
+        query = select(RelationshipMember).where(RelationshipMember.user_id == id)
+        result = await self.db.execute(query)
+        relationship_member = result.scalar_one_or_none()
+        if not relationship_member:
+            raise RelationshipMemberNotFoundError("Relationship member not found")
+        return relationship_member
