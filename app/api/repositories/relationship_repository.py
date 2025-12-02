@@ -67,15 +67,15 @@ class RelationshipRepository:
         )
         return partner
 
-    async def get_by_id(self, id, current_user):
-        query = select(Relationship).where(Relationship.id == id)
+    async def get_by_id(self, relationship_id, user_id):
+        query = select(Relationship).where(Relationship.id == relationship_id)
         result = await self.db.execute(query)
         rel = result.scalars().first()
         if not rel:
             raise RelationshipNotFoundError("Relationship not found")
         query = select(RelationshipMember).where(
-            (RelationshipMember.relationship_id == id)
-            & (RelationshipMember.user_id == current_user.id)
+            (RelationshipMember.relationship_id == relationship_id)
+            & (RelationshipMember.user_id == user_id)
         )
         result = await self.db.execute(query)
         rel_mem = result.scalars().first()

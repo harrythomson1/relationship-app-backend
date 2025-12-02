@@ -53,7 +53,7 @@ async def get_relationship(
     current_user=get_current_user_dependency,
 ):
     try:
-        rel = await service.get_by_id(id, current_user)
+        rel = await service.get_by_id(id, current_user.id)
     except RelationshipNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     except UserNotAMemberOfRelationshipError as e:
