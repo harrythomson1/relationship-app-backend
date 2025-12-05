@@ -12,6 +12,7 @@ class UserSchema(BaseModel):
     created_at: datetime
     supabase_user_id: UUID
     time_zone: str | None
+    avatar_path: str | None
 
 
 class UserCreate(BaseModel):
