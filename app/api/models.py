@@ -51,6 +51,7 @@ class User(Base):
         nullable=False,
     )
     time_zone: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    avatar_path: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
 
 class Relationship(Base):
