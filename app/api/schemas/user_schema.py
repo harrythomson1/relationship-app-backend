@@ -21,6 +21,7 @@ class UserCreate(BaseModel):
 
 
 class PartnerSchema(BaseModel):
+    id: int
     name: str
     time_zone: str
     avatar_path: str | None
