@@ -23,6 +23,7 @@ class UserCreate(BaseModel):
 class PartnerSchema(BaseModel):
     name: str
     time_zone: str
+    avatar_path: str | None
 
 
 class UserUpdate(BaseModel):
