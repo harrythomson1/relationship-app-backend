@@ -57,10 +57,10 @@ async def get_partner(
     current_user=get_current_user_dependency,
 ):
     try:
-        rel = await service.get_partner(current_user)
+        partner = await service.get_partner(current_user)
     except (RelationshipMemberNotFoundError, UserNotFoundError) as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
-    return rel
+    return partner
 
 
 @router.get("/relationships/{id}", response_model=RelationshipSchema)
