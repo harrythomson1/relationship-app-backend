@@ -29,6 +29,7 @@ class UserUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str | None = None
     time_zone: str | None = None
+    avatar_path: str | None = None
 
     @field_validator("time_zone")
     def validate_time_zone(cls, v):
