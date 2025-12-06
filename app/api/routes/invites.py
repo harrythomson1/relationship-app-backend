@@ -33,7 +33,7 @@ async def add_relationship_invite(
 <p>Hello, I want to add you to the relationship.</p>
 <p>
 Please follow this link to accept:
-<a href="relationshipappfrontend://profile">Open in app</a> relationshipappfrontend://relationship/profile?token={relationship_invite.token}
+<a href="relationshipappfrontend://profile">Open in app</a> relationshipappfrontend://profile?token={relationship_invite.token}
 </p>
 """
         background.add_task(
