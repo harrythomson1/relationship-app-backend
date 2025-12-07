@@ -36,7 +36,6 @@ def db_sync_url():
     u = make_url(db_url())
     if u.drivername.endswith("+asyncpg"):
         u = u.set(drivername="postgresql+psycopg")
-    u = u.set(host="127.0.0.1")  # force IPv4 like your working psql test
     return u
 
 
