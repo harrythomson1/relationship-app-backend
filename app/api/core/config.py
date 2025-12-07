@@ -5,7 +5,7 @@ from typing import Final
 from dotenv import load_dotenv
 
 if Path(".env.local").exists():
-    load_dotenv(".env.local")
+    load_dotenv(".env.local", override=True)
 else:
     load_dotenv()
 
