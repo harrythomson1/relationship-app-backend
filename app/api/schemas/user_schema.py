@@ -1,6 +1,6 @@
 from datetime import datetime
 from uuid import UUID
-from zoneinfo import available_timezones
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
@@ -35,6 +35,9 @@ class UserUpdate(BaseModel):
 
     @field_validator("time_zone")
     def validate_time_zone(cls, v):
-        if v is not None and v not in available_timezones():
-            raise ValueError("Timezone is invalid")
+        if v is not None:
+            try:
+                ZoneInfo(v)
+            except (ZoneInfoNotFoundError, KeyError) as e:
+                raise ValueError("Timezone is invalid") from e
         return v
