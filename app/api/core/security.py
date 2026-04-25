@@ -4,10 +4,7 @@ import requests
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
 
-JWKS_URL = "https://lkfhoxaagckacfjpnkqw.supabase.co/auth/v1/.well-known/jwks.json"
-ALGORITHM = "ES256"
-PROJECT_URL = "https://lkfhoxaagckacfjpnkqw.supabase.co/auth/v1"
-AUDIENCE = "authenticated"
+from app.api.core.config import ALGORITHM, AUDIENCE, JWKS_URL, PROJECT_URL
 
 _JWKS_CACHE = None
 _JWKS_CACHE_TIME = 0
