@@ -26,6 +26,15 @@ async def accept_relationship_invite(token: str):
     return RedirectResponse(url=f"relationshipappfrontend://profile?token={token}")
 
 
+@router.put("/invites/{token}/decline", status_code=status.HTTP_204_NO_CONTENT)
+async def decline_relationship_invite(
+    token: str,
+    service: RelationshipInvitesService = relationship_invite_service_dependency,
+    current_user=get_current_user_dependency,
+):
+    await service.mark_declined(token)
+
+
 @router.get("/invites/pending", response_model=RelationshipInviteSchema | None)
 async def get_pending_invite(
     service: RelationshipInvitesService = relationship_invite_service_dependency,

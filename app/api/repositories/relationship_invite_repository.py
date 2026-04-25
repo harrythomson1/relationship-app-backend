@@ -44,6 +44,10 @@ class RelationshipInviteRepository:
         invite.accepted_at = datetime.now(UTC)
         await self.db.flush()
 
+    async def mark_declined(self, invite):
+        invite.status = InviteStatus.declined
+        await self.db.commit()
+
     async def get_pending_for_email(self, email, user_id):
         query = select(Invite).where(
             (Invite.invitee_email == email)
