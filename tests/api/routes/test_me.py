@@ -181,15 +181,13 @@ class TestUsersDelete:
     async def test_delete_user_successfully(self, client):
         login_res = await client.post("/users", json={"name": "Harry"})
         assert login_res.status_code == 201
-        user = login_res.json()
         del_res = await client.delete(
             "/users/me",
         )
         assert del_res.status_code in (200, 204)
 
-        # Confirm it's gone via GET /users/{id}
-        res = await client.get(f"/users/{user['id']}")
-        assert res.status_code == 404
+        me_res = await client.get("/users/me")
+        assert me_res.status_code == 404
 
     @pytest.mark.asyncio
     async def test_delete_user_unauthorized_after_already_deleted(self, client):
