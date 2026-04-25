@@ -1,28 +1,18 @@
-import os
-import ssl
-from email.message import EmailMessage
+import resend
 
-import aiosmtplib
-import certifi
+from app.api.core.config import RESEND_API_KEY
 
 
 async def send_email(sender, receiver, subject, content):
-    message = EmailMessage()
-    message["From"] = sender
-    message["To"] = receiver
-    message["Subject"] = subject
-    message.set_content(content, subtype="html")
-
+    resend.api_key = RESEND_API_KEY
     try:
-        tls_context = ssl.create_default_context(cafile=certifi.where())
-        await aiosmtplib.send(
-            message,
-            hostname="smtp.gmail.com",
-            port=587,
-            start_tls=True,
-            tls_context=tls_context,
-            username=sender,
-            password=os.environ.get("GMAIL_APP_PASSWORD"),
+        resend.Emails.send(
+            {
+                "from": sender,
+                "to": receiver,
+                "subject": subject,
+                "html": content,
+            }
         )
     except Exception as e:
         raise RuntimeError(f"Failed to send email: {e}") from e

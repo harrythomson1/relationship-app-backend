@@ -23,3 +23,5 @@ AUDIENCE: str = os.getenv("AUDIENCE", "")
 assert AUDIENCE, "AUDIENCE is not set in .env"
 ALGORITHM: str = os.getenv("ALGORITHM", "")
 assert ALGORITHM, "ALGORITHM is not set in .env"
+RESEND_API_KEY: str = os.environ.get("RESEND_API_KEY", "")
+assert RESEND_API_KEY, "RESEND_API_KEY is not set in env"
