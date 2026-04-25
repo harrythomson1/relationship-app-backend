@@ -1,8 +1,12 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+if Path(".env.local").exists():
+    load_dotenv(".env.local", override=True)
+else:
+    load_dotenv()
 
 
 def db_url() -> str:
