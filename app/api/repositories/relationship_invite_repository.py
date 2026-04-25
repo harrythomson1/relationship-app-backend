@@ -30,7 +30,7 @@ class RelationshipInviteRepository:
         return invite
 
     async def get_by_token(self, token):
-        query = select(Invite).where(token == token)
+        query = select(Invite).where(Invite.token == token)
         result = await self.db.execute(query)
         invite = result.scalars().first()
         if not invite:
