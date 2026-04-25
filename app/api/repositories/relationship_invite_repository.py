@@ -37,9 +37,11 @@ class RelationshipInviteRepository:
             raise RelationshipInviteNotFoundError("Relationship invite not found")
         return invite
 
-    async def get_pending_for_email(self, email):
+    async def get_pending_for_email(self, email, user_id):
         query = select(Invite).where(
-            (Invite.invitee_email == email) & (Invite.status == InviteStatus.pending)
+            (Invite.invitee_email == email)
+            & (Invite.status == InviteStatus.pending)
+            & (Invite.inviter_user_id != user_id)
         )
         result = await self.db.execute(query)
         return result.scalars().first()

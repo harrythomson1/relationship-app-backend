@@ -17,4 +17,4 @@ class RelationshipInvitesService:
         return await self.repository.get_by_token(token)
 
     async def get_pending_for_user(self, user):
-        return await self.repository.get_pending_for_email(user.email)
+        return await self.repository.get_pending_for_email(user.email, user.id)
