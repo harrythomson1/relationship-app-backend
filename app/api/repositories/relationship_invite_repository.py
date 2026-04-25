@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 
 from app.api.models import Invite, InviteStatus
@@ -36,6 +38,11 @@ class RelationshipInviteRepository:
         if not invite:
             raise RelationshipInviteNotFoundError("Relationship invite not found")
         return invite
+
+    async def mark_accepted(self, invite):
+        invite.status = InviteStatus.accepted
+        invite.accepted_at = datetime.now(UTC)
+        await self.db.flush()
 
     async def get_pending_for_email(self, email, user_id):
         query = select(Invite).where(

@@ -41,6 +41,7 @@ class RelationshipsService:
             )
             await self.relationship_repository.add_relationship_members(rel_member_1)
             await self.relationship_repository.add_relationship_members(rel_member_2)
+            await relationship_invite_service.mark_accepted(invite)
         await self.db.commit()
         return rel
 

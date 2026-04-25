@@ -18,3 +18,6 @@ class RelationshipInvitesService:
 
     async def get_pending_for_user(self, user):
         return await self.repository.get_pending_for_email(user.email, user.id)
+
+    async def mark_accepted(self, invite):
+        await self.repository.mark_accepted(invite)
