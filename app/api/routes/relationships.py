@@ -6,6 +6,7 @@ from app.api.dependencies import (
     get_relationships_service,
     get_users_service,
 )
+from app.api.repositories.relationship_invite_repository import RelationshipInviteNotFoundError
 from app.api.repositories.relationship_repository import (
     DuplicateEntryError,
     RelationshipMemberNotFoundError,
@@ -45,6 +46,8 @@ async def add_relationship(
             current_user, relationship_info, users_service, relationship_invite_service
         )
         return relationship
+    except RelationshipInviteNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     except InvalidInviteUserError as e:
         raise HTTPException(status_code=403, detail={"message": str(e)}) from e
     except DuplicateEntryError as e:
