@@ -40,12 +40,11 @@ def _ensure_database_exists(sync_url: str) -> None:
     admin_url = urlunsplit((scheme, parts.netloc, "/postgres", "", ""))
 
     # autocommit is required to CREATE DATABASE
-    with psycopg.connect(admin_url, autocommit=True) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (dbname,))
-            exists = cur.fetchone() is not None
-            if not exists:
-                cur.execute(f'CREATE DATABASE "{dbname}"')
+    with psycopg.connect(admin_url, autocommit=True) as conn, conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (dbname,))
+        exists = cur.fetchone() is not None
+        if not exists:
+            cur.execute(f'CREATE DATABASE "{dbname}"')
 
 
 def run_migrations_once() -> None:
@@ -150,3 +149,21 @@ async def auto_fake_email(monkeypatch):
     send_emails = []
     monkeypatch.setattr(mailer, "send_email", await fake_send_email_factory(send_emails))
     yield send_emails
+
+
+@pytest.fixture(autouse=True)
+def mock_jwks_fetch(monkeypatch):
+    import requests
+
+    from app.api.core import security
+
+    class _MockResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"keys": []}
+
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: _MockResponse())
+    monkeypatch.setattr(security, "_JWKS_CACHE", None)
+    monkeypatch.setattr(security, "_JWKS_CACHE_TIME", 0)

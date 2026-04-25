@@ -5,6 +5,8 @@ from httpx import AsyncClient
 
 from tests.api.test_utils import (
     _create_relationship_invite,
+    _create_user,
+    _set_claims,
 )
 
 
@@ -34,3 +36,78 @@ class TestRelationshipInvite:
         assert res.status_code == 409
         assert res.json()["detail"]["message"] == "Invite already exists"
         assert len(auto_fake_email) == 1
+
+    @pytest.mark.asyncio
+    async def test_invite_response_contains_token(self, client: AsyncClient, auto_fake_email):
+        res, _, _ = await _create_relationship_invite(client)
+
+        assert res.status_code == 201, res.text
+        body = res.json()
+        assert "token" in body
+        assert body["token"] is not None
+
+    @pytest.mark.asyncio
+    async def test_invite_to_nonexistent_email_succeeds(self, client: AsyncClient, auto_fake_email):
+        inviter = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(inviter["supabase_user_id"]),
+                "email": inviter["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.post(
+            "/relationships/invites",
+            json={"invitee_email": "nobody@nowhere.example"},
+        )
+        assert res.status_code == 201, res.text
+        assert len(auto_fake_email) == 1
+        assert auto_fake_email[0]["receiver"] == "nobody@nowhere.example"
+
+
+class TestRelationshipInviteAccept:
+    @pytest.mark.asyncio
+    async def test_wrong_user_cannot_accept_invite(self, client: AsyncClient):
+        res, inviter, invitee = await _create_relationship_invite(client)
+        assert res.status_code == 201, res.text
+        token = res.json()["token"]
+
+        third_party = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(third_party["supabase_user_id"]),
+                "email": third_party["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.post(
+            "/relationships",
+            json={"type": "romantic", "status": "active", "role": "partner", "invite_token": token},
+        )
+        assert res.status_code == 403, res.text
+        assert res.json()["detail"]["message"] == "Current user does not match user from the invite"
+
+    @pytest.mark.asyncio
+    async def test_invalid_token_returns_error(self, client: AsyncClient):
+        invitee = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.post(
+            "/relationships",
+            json={
+                "type": "romantic",
+                "status": "active",
+                "role": "partner",
+                "invite_token": "00000000-0000-0000-0000-000000000000",
+            },
+        )
+        assert res.status_code == 404, res.text
+        assert res.json()["detail"]["message"] == "Relationship invite not found"
