@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.auth.utils import get_current_claims
 from app.api.dependencies import get_users_service
-from app.api.repositories.user_repository import DuplicateEmailError, UserNotFoundError
+from app.api.repositories.user_repository import DuplicateEmailError
 from app.api.schemas.user_schema import UserCreate, UserSchema
 from app.api.services.users_service import InvalidEmailError, UsersService
 
@@ -29,12 +29,3 @@ async def add_user(
     except Exception as e:
         logger.exception("Unexpected error with adding a user")
         raise HTTPException(status_code=500, detail={"message": "Internal server error"}) from e
-
-
-@router.get("/users/{id}", response_model=UserSchema)
-async def get_user(id: int, service: UsersService = user_service_dependency):
-    try:
-        user = await service.get_by_id(id)
-    except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
-    return user
