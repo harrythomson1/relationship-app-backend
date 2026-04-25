@@ -29,8 +29,8 @@ relationship_repository_dependency = Depends(get_relationship_repository)
 relationship_invite_repository_dependency = Depends(get_relationship_invites_repository)
 
 
-async def get_users_service(user_repostitory=user_repository_dependency):
-    return UsersService(repository=user_repostitory)
+async def get_users_service(user_repository=user_repository_dependency):
+    return UsersService(repository=user_repository)
 
 
 async def get_relationships_service(
