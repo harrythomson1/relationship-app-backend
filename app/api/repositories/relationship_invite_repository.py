@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.api.models import Invite
+from app.api.models import Invite, InviteStatus
 
 
 class DuplicateInviteError(Exception):
@@ -36,3 +36,10 @@ class RelationshipInviteRepository:
         if not invite:
             raise RelationshipInviteNotFoundError("Relationship invite not found")
         return invite
+
+    async def get_pending_for_email(self, email):
+        query = select(Invite).where(
+            (Invite.invitee_email == email) & (Invite.status == InviteStatus.pending)
+        )
+        result = await self.db.execute(query)
+        return result.scalars().first()

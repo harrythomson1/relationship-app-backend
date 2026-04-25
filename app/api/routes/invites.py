@@ -26,6 +26,14 @@ async def accept_relationship_invite(token: str):
     return RedirectResponse(url=f"relationshipappfrontend://profile?token={token}")
 
 
+@router.get("/invites/pending", response_model=RelationshipInviteSchema | None)
+async def get_pending_invite(
+    service: RelationshipInvitesService = relationship_invite_service_dependency,
+    current_user=get_current_user_dependency,
+):
+    return await service.get_pending_for_user(current_user)
+
+
 @router.post(
     "/invites", status_code=status.HTTP_201_CREATED, response_model=RelationshipInviteSchema
 )
