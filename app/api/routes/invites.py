@@ -1,6 +1,7 @@
 import os
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
 
 from app.api.auth.utils import get_current_user
 from app.api.dependencies import get_relationship_invites_service
@@ -17,6 +18,13 @@ router = APIRouter(prefix="/relationships", tags=["relationships"])
 relationship_invite_service_dependency = Depends(get_relationship_invites_service)
 get_current_user_dependency = Depends(get_current_user)
 
+BASE_URL = "https://relationship-app-backend-production.up.railway.app"
+
+
+@router.get("/invites/accept")
+async def accept_relationship_invite(token: str):
+    return RedirectResponse(url=f"relationshipappfrontend://profile?token={token}")
+
 
 @router.post(
     "/invites", status_code=status.HTTP_201_CREATED, response_model=RelationshipInviteSchema
@@ -29,12 +37,10 @@ async def add_relationship_invite(
 ):
     try:
         relationship_invite = await service.add(relationship_invite_info, current_user)
+        accept_url = f"{BASE_URL}/relationships/invites/accept?token={relationship_invite.token}"
         html_content = f"""
-<p>Hello, I want to add you to the relationship.</p>
-<p>
-Please follow this link to accept:
-<a href="relationshipappfrontend://profile">Open in app</a> relationshipappfrontend://profile?token={relationship_invite.token}
-</p>
+<p>Hello, you've been invited to connect on Anywhere.</p>
+<p><a href="{accept_url}">Tap here to accept</a></p>
 """
         background.add_task(
             mailer.send_email,
