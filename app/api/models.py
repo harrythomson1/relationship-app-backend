@@ -2,7 +2,16 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, UniqueConstraint, func, text
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -37,6 +46,12 @@ class InviteStatus(enum.Enum):
 
 class User(Base):
     __tablename__ = "users"
+
+    __table_args__ = (
+        CheckConstraint("wake_start >= 0 AND wake_start < 1440", name="check_wake_start_range"),
+        CheckConstraint("wake_end >= 0 AND wake_end < 1440", name="check_wake_end_range"),
+    )
+
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
@@ -49,6 +64,8 @@ class User(Base):
     )
     time_zone: Mapped[str | None] = mapped_column(String(120), nullable=True)
     avatar_path: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    wake_start: Mapped[int] = mapped_column(nullable=False, server_default="420")
+    wake_end: Mapped[int] = mapped_column(nullable=False, server_default="1320")
 
 
 class Relationship(Base):
