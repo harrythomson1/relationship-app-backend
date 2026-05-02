@@ -13,6 +13,8 @@ class UserSchema(BaseModel):
     supabase_user_id: UUID
     time_zone: str | None
     avatar_path: str | None
+    wake_start: int = 420
+    wake_end: int = 1320
 
 
 class UserCreate(BaseModel):
@@ -25,6 +27,8 @@ class PartnerSchema(BaseModel):
     name: str
     time_zone: str
     avatar_path: str | None
+    wake_start: int
+    wake_end: int
 
 
 class UserUpdate(BaseModel):
@@ -32,6 +36,8 @@ class UserUpdate(BaseModel):
     name: str | None = None
     time_zone: str | None = None
     avatar_path: str | None = None
+    wake_start: int | None = None
+    wake_end: int | None = None
 
     @field_validator("time_zone")
     def validate_time_zone(cls, v):
