@@ -11,6 +11,7 @@ class RelationshipSchema(BaseModel):
     status: RelationshipStatus
     created_at: datetime
     updated_at: datetime
+    next_meet_at: datetime
 
 
 class RelationshipCreate(BaseModel):
@@ -22,5 +23,6 @@ class RelationshipCreate(BaseModel):
 
 class RelationshipUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    type: RelationshipType
-    status: RelationshipStatus
+    type: RelationshipType | None = None
+    status: RelationshipStatus | None = None
+    next_meet_at: datetime | None = None
