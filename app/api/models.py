@@ -87,6 +87,7 @@ class Relationship(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    next_meet_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class RelationshipMember(Base):
