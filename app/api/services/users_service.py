@@ -1,5 +1,3 @@
-import re
-
 from app.api.models import User
 
 
@@ -12,12 +10,7 @@ class UsersService:
         self.repository = repository
 
     async def add(self, user_info, claims):
-        email = claims.get("email", "")
-        if not re.match(r"^[\w\-.]+@([\w\-]+\.)+[\w\-]{2,4}$", email):
-            raise InvalidEmailError(
-                "value is not a valid email address: An email address must have an @-sign."
-            )
-        email = email.lower().strip()
+        email = claims.get("email", "").lower().strip()
         user = User(
             name=user_info.name,
             email=email,
