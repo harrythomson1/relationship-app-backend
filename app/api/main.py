@@ -8,7 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.core.database_connection import SessionLocal
 from app.api.jobs.overlap_notifier import notify_imminent_overlaps
-from app.api.routes import invites, me, push_tokens, relationships, users
+from app.api.routes import (
+    invites,
+    me,
+    notification_preferences,
+    push_tokens,
+    relationships,
+    users,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +67,7 @@ app.include_router(users.router)
 app.include_router(invites.router)
 app.include_router(relationships.router)
 app.include_router(push_tokens.router)
+app.include_router(notification_preferences.router)
 
 
 @app.get("/health")

@@ -11,7 +11,11 @@ from sqlalchemy import select
 
 from app.api.jobs.overlap_calc import UserSchedule, calculate_overlap
 from app.api.models import Relationship, RelationshipMember, RelationshipStatus, User
+from app.api.notifications.keys import NotificationKey
 from app.api.repositories.device_token_repository import DeviceTokenRepository
+from app.api.repositories.notification_preferences_repository import (
+    NotificationPreferencesRepository,
+)
 from app.api.services.push_notifications_service import PushNotificationsService
 
 logger = logging.getLogger(__name__)
@@ -43,6 +47,7 @@ async def notify_imminent_overlaps(db) -> int:
     )
 
     push_service = PushNotificationsService(DeviceTokenRepository(db))
+    prefs_repo = NotificationPreferencesRepository(db)
 
     notified = 0
     for rel in relationships:
@@ -78,7 +83,13 @@ async def notify_imminent_overlaps(db) -> int:
         if (status.minutes_until_open or 0) > NOTIFY_WHEN_MINUTES_UNTIL_OPEN_LE:
             continue
 
+        opt_outs_by_user = await prefs_repo.list_opt_outs_for_users([u.id for u in users])
+
+        any_recipient = False
         for u in users:
+            if NotificationKey.overlap_opening.value in opt_outs_by_user.get(u.id, set()):
+                continue
+            any_recipient = True
             partner = b if u.id == a.id else a
             try:
                 await push_service.send_to_user(
@@ -90,8 +101,11 @@ async def notify_imminent_overlaps(db) -> int:
             except Exception:
                 logger.exception("Failed to send overlap push to user %s", u.id)
 
+        # Stamp even when both partners are opted out so we stop rescanning
+        # this relationship every tick for the rest of the window.
         rel.last_overlap_notified_at = now
         await db.commit()
-        notified += 1
+        if any_recipient:
+            notified += 1
 
     return notified
