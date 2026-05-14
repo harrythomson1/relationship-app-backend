@@ -20,7 +20,10 @@ from app.api.schemas.relationship_schema import (
     RelationshipUpdate,
 )
 from app.api.schemas.user_schema import PartnerSchema
-from app.api.services.relationship_invites_service import RelationshipInvitesService
+from app.api.services.relationship_invites_service import (
+    InviteExpiredError,
+    RelationshipInvitesService,
+)
 from app.api.services.relationships_service import InvalidInviteUserError, RelationshipsService
 from app.api.services.users_service import UsersService
 
@@ -48,6 +51,8 @@ async def add_relationship(
         return relationship
     except RelationshipInviteNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    except InviteExpiredError as e:
+        raise HTTPException(status_code=410, detail={"message": str(e)}) from e
     except InvalidInviteUserError as e:
         raise HTTPException(status_code=403, detail={"message": str(e)}) from e
     except DuplicateEntryError as e:

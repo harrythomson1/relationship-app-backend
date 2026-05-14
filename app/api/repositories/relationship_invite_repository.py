@@ -48,6 +48,10 @@ class RelationshipInviteRepository:
         invite.status = InviteStatus.declined
         await self.db.commit()
 
+    async def mark_expired(self, invite):
+        invite.status = InviteStatus.expired
+        await self.db.commit()
+
     async def get_pending_for_email(self, email, user_id):
         query = select(Invite).where(
             (Invite.invitee_email == email)

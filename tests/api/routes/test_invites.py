@@ -1,8 +1,11 @@
 import os
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 
+from app.api.models import Invite, InviteStatus
 from tests.api.test_utils import (
     _create_relationship_invite,
     _create_user,
@@ -111,3 +114,35 @@ class TestRelationshipInviteAccept:
         )
         assert res.status_code == 404, res.text
         assert res.json()["detail"]["message"] == "Relationship invite not found"
+
+    @pytest.mark.asyncio
+    async def test_expired_invite_cannot_be_accepted(self, client: AsyncClient, db_session):
+        res, _inviter, invitee = await _create_relationship_invite(client)
+        assert res.status_code == 201, res.text
+        token = res.json()["token"]
+
+        invite = (
+            await db_session.execute(select(Invite).where(Invite.token == token))
+        ).scalar_one()
+        invite.expires_at = datetime.now(UTC) - timedelta(seconds=1)
+        await db_session.commit()
+
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.post(
+            "/relationships",
+            json={"type": "romantic", "status": "active", "role": "partner", "invite_token": token},
+        )
+        assert res.status_code == 410, res.text
+        assert res.json()["detail"]["message"] == "Invite has expired"
+
+        refreshed = (
+            await db_session.execute(select(Invite).where(Invite.token == token))
+        ).scalar_one()
+        assert refreshed.status == InviteStatus.expired
