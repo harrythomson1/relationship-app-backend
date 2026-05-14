@@ -89,7 +89,7 @@ class RelationshipRepository:
     async def update(self, user_id, update_data):
         relationship = await self._get_by_user_id(user_id)
 
-        updates = update_data.model_dump(exclude_none=True)
+        updates = update_data.model_dump(exclude_unset=True)
 
         updates = {k: v for k, v in updates.items() if k in ALLOWED_FIELDS}
 
