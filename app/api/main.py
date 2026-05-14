@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import invites, me, relationships, users
+from app.api.routes import invites, me, push_tokens, relationships, users
 
 app = FastAPI(title="Relationship App API", version="0.1.0")
 
@@ -22,6 +22,7 @@ app.include_router(me.router)
 app.include_router(users.router)
 app.include_router(invites.router)
 app.include_router(relationships.router)
+app.include_router(push_tokens.router)
 
 
 @app.get("/health")
