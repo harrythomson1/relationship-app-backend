@@ -1,3 +1,4 @@
+import logging
 import os
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
@@ -20,12 +21,23 @@ from app.api.services.relationship_invites_service import (
 )
 from app.api.utils import mailer
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/relationships", tags=["relationships"])
 
 relationship_invite_service_dependency = Depends(get_relationship_invites_service)
 get_current_user_dependency = Depends(get_current_user)
 
 BASE_URL = "https://relationship-app-backend-production.up.railway.app"
+
+
+async def _send_invite_email_safely(sender, receiver, subject, content):
+    try:
+        await mailer.send_email(sender=sender, receiver=receiver, subject=subject, content=content)
+    except Exception:
+        logger.exception(
+            "Failed to send invite email to %s", receiver, extra={"receiver": receiver}
+        )
 
 
 @router.get("/invites/accept")
@@ -74,7 +86,7 @@ async def add_relationship_invite(
 <p><a href="{accept_url}">Tap here to accept</a></p>
 """
         background.add_task(
-            mailer.send_email,
+            _send_invite_email_safely,
             sender=os.environ.get("APP_EMAIL"),
             receiver=relationship_invite_info.invitee_email,
             subject="Let's connect",
