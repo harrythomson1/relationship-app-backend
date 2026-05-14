@@ -177,3 +177,18 @@ class DeviceToken(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class NotificationOptOut(Base):
+    __tablename__ = "notification_opt_outs"
+    __table_args__ = (
+        UniqueConstraint("user_id", "key", name="uniq_notification_opt_out"),
+        Index("ix_notification_opt_outs_user_id", "user_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    key: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
