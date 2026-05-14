@@ -28,7 +28,9 @@ router = APIRouter(prefix="/relationships", tags=["relationships"])
 relationship_invite_service_dependency = Depends(get_relationship_invites_service)
 get_current_user_dependency = Depends(get_current_user)
 
-BASE_URL = "https://relationship-app-backend-production.up.railway.app"
+BASE_URL = os.environ.get(
+    "INVITE_ACCEPT_BASE_URL", "https://relationship-app-backend-production.up.railway.app"
+)
 
 
 async def _send_invite_email_safely(sender, receiver, subject, content):
