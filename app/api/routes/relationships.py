@@ -54,6 +54,20 @@ async def add_relationship(
         raise HTTPException(status_code=409, detail={"message": str(e)}) from e
 
 
+@router.get("/relationships", response_model=RelationshipSchema)
+async def get_my_relationship(
+    service: RelationshipsService = relationship_service_dependency,
+    current_user=get_current_user_dependency,
+):
+    try:
+        rel = await service.get_by_user_id(current_user.id)
+    except RelationshipMemberNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    except RelationshipNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    return rel
+
+
 @router.get("/relationships/partner", response_model=PartnerSchema)
 async def get_partner(
     service: RelationshipsService = relationship_service_dependency,

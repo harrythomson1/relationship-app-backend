@@ -11,7 +11,7 @@ class RelationshipSchema(BaseModel):
     status: RelationshipStatus
     created_at: datetime
     updated_at: datetime
-    next_meet_at: datetime
+    next_meet_at: datetime | None = None
 
 
 class RelationshipCreate(BaseModel):

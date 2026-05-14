@@ -83,6 +83,9 @@ class RelationshipRepository:
             raise UserNotAMemberOfRelationshipError("User is not a member of relationship")
         return rel
 
+    async def get_by_user_id(self, user_id):
+        return await self._get_by_user_id(user_id)
+
     async def update(self, user_id, update_data):
         relationship = await self._get_by_user_id(user_id)
 

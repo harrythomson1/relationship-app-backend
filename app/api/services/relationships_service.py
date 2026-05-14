@@ -59,6 +59,9 @@ class RelationshipsService:
         rel = await self.relationship_repository.get_by_id(realtionship_id, user_id)
         return rel
 
+    async def get_by_user_id(self, user_id):
+        return await self.relationship_repository.get_by_user_id(user_id)
+
     async def update(self, id, update_data):
         return await self.relationship_repository.update(id, update_data)
 
