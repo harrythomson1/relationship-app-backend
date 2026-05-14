@@ -137,6 +137,17 @@ class TestUsersUpdate:
         assert body["name"] == "New Harry"
 
     @pytest.mark.asyncio
+    async def test_update_rejects_out_of_range_wake_times(self, client):
+        login_res = await client.post("/users", json={"name": "Harry"})
+        assert login_res.status_code == 201
+
+        res = await client.patch("/users/me", json={"wake_start": 1440})
+        assert res.status_code == 422, res.text
+
+        res = await client.patch("/users/me", json={"wake_end": -1})
+        assert res.status_code == 422, res.text
+
+    @pytest.mark.asyncio
     async def test_updates_unallowed_fields_decline(self, client):
         login_res = await client.post("/users", json={"name": "Harry"})
         assert login_res.status_code == 201

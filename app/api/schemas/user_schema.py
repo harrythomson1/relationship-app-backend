@@ -2,7 +2,9 @@ from datetime import datetime
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+MINUTES_PER_DAY = 1440
 
 
 class UserSchema(BaseModel):
@@ -36,8 +38,8 @@ class UserUpdate(BaseModel):
     name: str | None = None
     time_zone: str | None = None
     avatar_path: str | None = None
-    wake_start: int | None = None
-    wake_end: int | None = None
+    wake_start: int | None = Field(default=None, ge=0, lt=MINUTES_PER_DAY)
+    wake_end: int | None = Field(default=None, ge=0, lt=MINUTES_PER_DAY)
 
     @field_validator("time_zone")
     def validate_time_zone(cls, v):
