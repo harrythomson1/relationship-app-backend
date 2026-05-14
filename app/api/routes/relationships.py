@@ -119,9 +119,10 @@ async def update_relationship(
 async def delete_relationship(
     current_user=get_current_user_dependency,
     service: RelationshipsService = relationship_service_dependency,
+    relationship_invite_service: RelationshipInvitesService = relationship_invite_service_dependency,
 ):
     try:
-        await service.delete(current_user.id)
+        await service.delete(current_user.id, relationship_invite_service)
     except RelationshipMemberNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     except RelationshipNotFoundError as e:

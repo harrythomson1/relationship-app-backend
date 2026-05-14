@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from app.api.models import Invite, InviteStatus
 
@@ -20,7 +20,9 @@ class RelationshipInviteRepository:
     async def add(self, invite, user_id):
         result = await self.db.execute(
             select(Invite).where(
-                (Invite.inviter_user_id == user_id) & (Invite.invitee_email == invite.invitee_email)
+                (Invite.inviter_user_id == user_id)
+                & (Invite.invitee_email == invite.invitee_email)
+                & (Invite.status == InviteStatus.pending)
             )
         )
         existing_invite = result.scalar_one_or_none()
@@ -39,9 +41,21 @@ class RelationshipInviteRepository:
             raise RelationshipInviteNotFoundError("Relationship invite not found")
         return invite
 
-    async def mark_accepted(self, invite):
+    async def mark_accepted(self, invite, relationship_id):
         invite.status = InviteStatus.accepted
         invite.accepted_at = datetime.now(UTC)
+        invite.relationship_id = relationship_id
+        await self.db.flush()
+
+    async def mark_relationship_ended(self, relationship_id):
+        await self.db.execute(
+            update(Invite)
+            .where(
+                (Invite.relationship_id == relationship_id)
+                & (Invite.status == InviteStatus.accepted)
+            )
+            .values(status=InviteStatus.ended)
+        )
         await self.db.flush()
 
     async def mark_declined(self, invite):

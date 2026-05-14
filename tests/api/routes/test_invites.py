@@ -201,6 +201,56 @@ class TestRelationshipInviteAccept:
         assert res.status_code == 204, res.text
 
     @pytest.mark.asyncio
+    async def test_can_reinvite_after_relationship_ends(
+        self, client: AsyncClient, db_session, auto_fake_email
+    ):
+        # 1. Inviter sends invite to invitee
+        res, inviter, invitee = await _create_relationship_invite(client)
+        assert res.status_code == 201, res.text
+        token = res.json()["token"]
+
+        # 2. Invitee accepts -> relationship created, invite marked accepted
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.post(
+            "/relationships",
+            json={"type": "romantic", "status": "active", "role": "partner", "invite_token": token},
+        )
+        assert res.status_code == 201, res.text
+
+        # Invite should now be linked to the relationship.
+        accepted = (
+            await db_session.execute(select(Invite).where(Invite.token == token))
+        ).scalar_one()
+        assert accepted.status == InviteStatus.accepted
+        assert accepted.relationship_id is not None
+
+        # 3. Inviter deletes the relationship -> invite flips to ended
+        _set_claims(
+            {
+                "sub": str(inviter["supabase_user_id"]),
+                "email": inviter["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.delete("/relationships")
+        assert res.status_code == 204
+
+        await db_session.refresh(accepted)
+        assert accepted.status == InviteStatus.ended
+
+        # 4. Inviter can re-invite the same person without a duplicate error
+        res = await client.post("/relationships/invites", json={"invitee_email": invitee["email"]})
+        assert res.status_code == 201, res.text
+
+    @pytest.mark.asyncio
     async def test_expired_invite_cannot_be_accepted(self, client: AsyncClient, db_session):
         res, _inviter, invitee = await _create_relationship_invite(client)
         assert res.status_code == 201, res.text

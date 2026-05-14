@@ -41,7 +41,7 @@ class RelationshipsService:
             )
             await self.relationship_repository.add_relationship_members(rel_member_1)
             await self.relationship_repository.add_relationship_members(rel_member_2)
-            await relationship_invite_service.mark_accepted(invite)
+            await relationship_invite_service.mark_accepted(invite, rel.id)
         await self.db.commit()
         return rel
 
@@ -65,5 +65,8 @@ class RelationshipsService:
     async def update(self, id, update_data):
         return await self.relationship_repository.update(id, update_data)
 
-    async def delete(self, user_id):
+    async def delete(self, user_id, relationship_invite_service=None):
+        relationship = await self.relationship_repository.get_by_user_id(user_id)
+        if relationship_invite_service is not None:
+            await relationship_invite_service.mark_relationship_ended(relationship.id)
         return await self.relationship_repository.delete(user_id)

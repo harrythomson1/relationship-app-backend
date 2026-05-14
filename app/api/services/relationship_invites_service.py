@@ -57,8 +57,11 @@ class RelationshipInvitesService:
             return None
         return invite
 
-    async def mark_accepted(self, invite):
-        await self.repository.mark_accepted(invite)
+    async def mark_accepted(self, invite, relationship_id):
+        await self.repository.mark_accepted(invite, relationship_id)
+
+    async def mark_relationship_ended(self, relationship_id):
+        await self.repository.mark_relationship_ended(relationship_id)
 
     async def mark_declined(self, token, user):
         invite = await self.repository.get_by_token(token)
