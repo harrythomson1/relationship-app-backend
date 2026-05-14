@@ -9,6 +9,10 @@ class InviteExpiredError(Exception):
     pass
 
 
+class InviteRecipientMismatchError(Exception):
+    pass
+
+
 def _is_expired(invite):
     return invite.expires_at is not None and invite.expires_at <= datetime.now(UTC)
 
@@ -44,8 +48,10 @@ class RelationshipInvitesService:
     async def mark_accepted(self, invite):
         await self.repository.mark_accepted(invite)
 
-    async def mark_declined(self, token):
+    async def mark_declined(self, token, user):
         invite = await self.repository.get_by_token(token)
+        if invite.invitee_email != user.email:
+            raise InviteRecipientMismatchError("Invite is not addressed to this user")
         if _is_expired(invite):
             if invite.status == InviteStatus.pending:
                 await self.repository.mark_expired(invite)

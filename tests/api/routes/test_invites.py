@@ -116,6 +116,42 @@ class TestRelationshipInviteAccept:
         assert res.json()["detail"]["message"] == "Relationship invite not found"
 
     @pytest.mark.asyncio
+    async def test_third_party_cannot_decline_invite(self, client: AsyncClient):
+        res, _inviter, _invitee = await _create_relationship_invite(client)
+        assert res.status_code == 201, res.text
+        token = res.json()["token"]
+
+        third_party = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(third_party["supabase_user_id"]),
+                "email": third_party["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.put(f"/relationships/invites/{token}/decline")
+        assert res.status_code == 403, res.text
+        assert res.json()["detail"]["message"] == "Invite is not addressed to this user"
+
+    @pytest.mark.asyncio
+    async def test_invitee_can_decline_invite(self, client: AsyncClient):
+        res, _inviter, invitee = await _create_relationship_invite(client)
+        assert res.status_code == 201, res.text
+        token = res.json()["token"]
+
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        res = await client.put(f"/relationships/invites/{token}/decline")
+        assert res.status_code == 204, res.text
+
+    @pytest.mark.asyncio
     async def test_expired_invite_cannot_be_accepted(self, client: AsyncClient, db_session):
         res, _inviter, invitee = await _create_relationship_invite(client)
         assert res.status_code == 201, res.text

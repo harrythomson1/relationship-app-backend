@@ -5,12 +5,19 @@ from fastapi.responses import RedirectResponse
 
 from app.api.auth.utils import get_current_user
 from app.api.dependencies import get_relationship_invites_service
-from app.api.repositories.relationship_invite_repository import DuplicateInviteError
+from app.api.repositories.relationship_invite_repository import (
+    DuplicateInviteError,
+    RelationshipInviteNotFoundError,
+)
 from app.api.schemas.relationship_invite_schema import (
     RelationshipInviteCreate,
     RelationshipInviteSchema,
 )
-from app.api.services.relationship_invites_service import RelationshipInvitesService
+from app.api.services.relationship_invites_service import (
+    InviteExpiredError,
+    InviteRecipientMismatchError,
+    RelationshipInvitesService,
+)
 from app.api.utils import mailer
 
 router = APIRouter(prefix="/relationships", tags=["relationships"])
@@ -32,7 +39,14 @@ async def decline_relationship_invite(
     service: RelationshipInvitesService = relationship_invite_service_dependency,
     current_user=get_current_user_dependency,
 ):
-    await service.mark_declined(token)
+    try:
+        await service.mark_declined(token, current_user)
+    except RelationshipInviteNotFoundError as e:
+        raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    except InviteRecipientMismatchError as e:
+        raise HTTPException(status_code=403, detail={"message": str(e)}) from e
+    except InviteExpiredError as e:
+        raise HTTPException(status_code=410, detail={"message": str(e)}) from e
 
 
 @router.get("/invites/pending", response_model=RelationshipInviteSchema | None)
