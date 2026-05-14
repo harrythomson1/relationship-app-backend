@@ -9,7 +9,7 @@ from app.api.models import InviteStatus, MemberRole
 class RelationshipInviteSchema(BaseModel):
     id: int
     token: uuid.UUID
-    relaitionship_id: int | None = None
+    relationship_id: int | None = None
     inviter_user_id: int | None = None
     inviter_email: EmailStr
     invitee_user_id: int | None = None
