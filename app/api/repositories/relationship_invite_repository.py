@@ -63,7 +63,9 @@ class RelationshipInviteRepository:
 
     async def count_recent_for_inviter(self, inviter_user_id, since):
         query = select(func.count(Invite.id)).where(
-            (Invite.inviter_user_id == inviter_user_id) & (Invite.created_at >= since)
+            (Invite.inviter_user_id == inviter_user_id)
+            & (Invite.created_at >= since)
+            & (Invite.status == InviteStatus.pending)
         )
         result = await self.db.execute(query)
         return result.scalar_one()
