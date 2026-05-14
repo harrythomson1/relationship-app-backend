@@ -89,6 +89,22 @@ class TestRelationshipsGet:
         get_res = await client.get(f"/relationships/{rel_id}")
         assert get_res.status_code == 401
 
+    async def test_get_relationship_forbidden_for_non_member(self, client: AsyncClient):
+        rel = await _create_authed_relationship(client)
+        rel_id = rel.json()["id"]
+
+        outsider = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(outsider["supabase_user_id"]),
+                "email": outsider["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        get_res = await client.get(f"/relationships/{rel_id}")
+        assert get_res.status_code == 403, get_res.text
+
 
 @pytest.mark.asyncio
 class TestRelationshipsUpdate:

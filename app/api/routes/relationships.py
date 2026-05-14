@@ -96,7 +96,7 @@ async def get_relationship(
     except RelationshipNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     except UserNotAMemberOfRelationshipError as e:
-        raise HTTPException(status_code=401, detail={"message": str(e)}) from e
+        raise HTTPException(status_code=403, detail={"message": str(e)}) from e
     return rel
 
 
