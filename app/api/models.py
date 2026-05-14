@@ -42,6 +42,7 @@ class InviteStatus(enum.Enum):
     declined = "declined"
     revoked = "revoked"
     expired = "expired"
+    ended = "ended"
 
 
 class User(Base):
