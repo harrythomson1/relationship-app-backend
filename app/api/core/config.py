@@ -9,21 +9,18 @@ if Path(".env.local").exists():
 else:
     load_dotenv()
 
-_url = os.getenv("DATABASE_URL")
-if _url is None:
-    raise RuntimeError("DATABASE_URL is not set")
 
-DATABASE_URL: Final[str] = _url
+def _require_env(name: str) -> str:
+    value = os.environ.get(name, "")
+    if not value:
+        raise RuntimeError(f"{name} is not set in the environment")
+    return value
 
-JWKS_URL: str = os.getenv("JWKS_URL", "")
-assert JWKS_URL, "JWKS_URL is not set in .env"
-PROJECT_URL: str = os.getenv("PROJECT_URL", "")
-assert PROJECT_URL, "PROJECT_URL is not set in .env"
-AUDIENCE: str = os.getenv("AUDIENCE", "")
-assert AUDIENCE, "AUDIENCE is not set in .env"
-ALGORITHM: str = os.getenv("ALGORITHM", "")
-assert ALGORITHM, "ALGORITHM is not set in .env"
-RESEND_API_KEY: str = os.environ.get("RESEND_API_KEY", "")
-assert RESEND_API_KEY, "RESEND_API_KEY is not set in env"
-SUPABASE_SERVICE_ROLE_KEY: str = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-assert SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY is not set in env"
+
+DATABASE_URL: Final[str] = _require_env("DATABASE_URL")
+JWKS_URL: Final[str] = _require_env("JWKS_URL")
+PROJECT_URL: Final[str] = _require_env("PROJECT_URL")
+AUDIENCE: Final[str] = _require_env("AUDIENCE")
+ALGORITHM: Final[str] = _require_env("ALGORITHM")
+RESEND_API_KEY: Final[str] = _require_env("RESEND_API_KEY")
+SUPABASE_SERVICE_ROLE_KEY: Final[str] = _require_env("SUPABASE_SERVICE_ROLE_KEY")
