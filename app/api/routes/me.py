@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.api.auth.supabase_admin import SupabaseAdminError
 from app.api.auth.utils import get_current_claims, get_current_user
 from app.api.core.database_connection import get_db
 from app.api.dependencies import get_users_service
@@ -54,3 +55,8 @@ async def delete_user(
         await service.delete(current_user.id)
     except UserNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
+    except SupabaseAdminError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={"message": f"Failed to delete authentication account: {e}"},
+        ) from e

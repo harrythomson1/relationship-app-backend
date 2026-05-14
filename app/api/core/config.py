@@ -25,3 +25,5 @@ ALGORITHM: str = os.getenv("ALGORITHM", "")
 assert ALGORITHM, "ALGORITHM is not set in .env"
 RESEND_API_KEY: str = os.environ.get("RESEND_API_KEY", "")
 assert RESEND_API_KEY, "RESEND_API_KEY is not set in env"
+SUPABASE_SERVICE_ROLE_KEY: str = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+assert SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY is not set in env"
