@@ -50,6 +50,27 @@ class TestRelationshipInvite:
         assert body["token"] is not None
 
     @pytest.mark.asyncio
+    async def test_invite_rate_limit(self, client: AsyncClient, auto_fake_email):
+        inviter = await _create_user(client)
+        _set_claims(
+            {
+                "sub": str(inviter["supabase_user_id"]),
+                "email": inviter["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        for i in range(10):
+            res = await client.post(
+                "/relationships/invites", json={"invitee_email": f"u{i}@example.com"}
+            )
+            assert res.status_code == 201, res.text
+
+        res = await client.post("/relationships/invites", json={"invitee_email": "u10@example.com"})
+        assert res.status_code == 429, res.text
+        assert "rate limit" in res.json()["detail"]["message"].lower()
+
+    @pytest.mark.asyncio
     async def test_invite_to_nonexistent_email_succeeds(self, client: AsyncClient, auto_fake_email):
         inviter = await _create_user(client)
         _set_claims(

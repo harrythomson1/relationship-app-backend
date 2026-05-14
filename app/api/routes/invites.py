@@ -16,6 +16,7 @@ from app.api.schemas.relationship_invite_schema import (
 )
 from app.api.services.relationship_invites_service import (
     InviteExpiredError,
+    InviteRateLimitedError,
     InviteRecipientMismatchError,
     RelationshipInvitesService,
 )
@@ -95,5 +96,7 @@ async def add_relationship_invite(
             content=html_content,
         )
         return relationship_invite
+    except InviteRateLimitedError as e:
+        raise HTTPException(status_code=429, detail={"message": str(e)}) from e
     except DuplicateInviteError as e:
         raise HTTPException(status_code=409, detail={"message": str(e)}) from e

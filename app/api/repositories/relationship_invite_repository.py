@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.api.models import Invite, InviteStatus
 
@@ -60,3 +60,10 @@ class RelationshipInviteRepository:
         )
         result = await self.db.execute(query)
         return result.scalars().first()
+
+    async def count_recent_for_inviter(self, inviter_user_id, since):
+        query = select(func.count(Invite.id)).where(
+            (Invite.inviter_user_id == inviter_user_id) & (Invite.created_at >= since)
+        )
+        result = await self.db.execute(query)
+        return result.scalar_one()

@@ -3,6 +3,8 @@ from datetime import UTC, datetime, timedelta
 from app.api.models import Invite, InviteStatus
 
 INVITE_TTL = timedelta(days=7)
+INVITE_RATE_LIMIT_WINDOW = timedelta(hours=1)
+INVITE_RATE_LIMIT_MAX = 10
 
 
 class InviteExpiredError(Exception):
@@ -10,6 +12,10 @@ class InviteExpiredError(Exception):
 
 
 class InviteRecipientMismatchError(Exception):
+    pass
+
+
+class InviteRateLimitedError(Exception):
     pass
 
 
@@ -22,6 +28,12 @@ class RelationshipInvitesService:
         self.repository = repository
 
     async def add(self, relationship_invite_info, user):
+        window_start = datetime.now(UTC) - INVITE_RATE_LIMIT_WINDOW
+        recent_count = await self.repository.count_recent_for_inviter(user.id, window_start)
+        if recent_count >= INVITE_RATE_LIMIT_MAX:
+            raise InviteRateLimitedError(
+                f"Invite rate limit reached ({INVITE_RATE_LIMIT_MAX} per hour)"
+            )
         invite = Invite(
             invitee_email=relationship_invite_info.invitee_email,
             inviter_user_id=user.id,
