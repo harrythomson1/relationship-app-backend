@@ -51,17 +51,14 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Relationship App API", version="0.1.0", lifespan=lifespan)
 
-origins = (
-    [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
-    if os.getenv("CORS_ORIGINS")
-    else ["*"]
-)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
-)
+origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+if origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 app.include_router(me.router)
 app.include_router(users.router)
 app.include_router(invites.router)
