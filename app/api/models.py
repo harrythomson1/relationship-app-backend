@@ -88,6 +88,9 @@ class Relationship(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     next_meet_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_overlap_notified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
 
 class RelationshipMember(Base):
