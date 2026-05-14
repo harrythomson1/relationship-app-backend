@@ -23,7 +23,7 @@ BASE_URL = "https://relationship-app-backend-production.up.railway.app"
 
 @router.get("/invites/accept")
 async def accept_relationship_invite(token: str):
-    return RedirectResponse(url=f"relationshipappfrontend://profile?token={token}")
+    return RedirectResponse(url=f"anywhere://profile?token={token}")
 
 
 @router.put("/invites/{token}/decline", status_code=status.HTTP_204_NO_CONTENT)
