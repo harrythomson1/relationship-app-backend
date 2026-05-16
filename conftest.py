@@ -152,6 +152,19 @@ async def auto_fake_email(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def stub_supabase_admin_delete(monkeypatch):
+    """Replace the real Supabase admin delete with a no-op so tests can
+    exercise our DELETE /users/me path without hitting the network."""
+    calls: list[str] = []
+
+    async def _fake_delete(supabase_user_id):
+        calls.append(str(supabase_user_id))
+
+    monkeypatch.setattr("app.api.services.users_service.delete_auth_user", _fake_delete)
+    yield calls
+
+
+@pytest.fixture(autouse=True)
 def mock_jwks_fetch(monkeypatch):
     import requests
 
