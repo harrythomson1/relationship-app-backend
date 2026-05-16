@@ -9,6 +9,7 @@ from enum import Enum
 
 class NotificationKey(str, Enum):
     overlap_opening = "overlap_opening"
+    countdown_updated = "countdown_updated"
 
 
 ALL_KEYS: tuple[NotificationKey, ...] = tuple(NotificationKey)

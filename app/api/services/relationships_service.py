@@ -1,9 +1,14 @@
+import logging
+
 from app.api.models import Relationship, RelationshipMember
+from app.api.notifications.keys import NotificationKey
 from app.api.repositories.relationship_repository import (
     DuplicateEntryError,
     RelationshipMemberNotFoundError,
     RelationshipNotFoundError,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidInviteUserError(Exception):
@@ -62,8 +67,58 @@ class RelationshipsService:
     async def get_by_user_id(self, user_id):
         return await self.relationship_repository.get_by_user_id(user_id)
 
-    async def update(self, id, update_data):
-        return await self.relationship_repository.update(id, update_data)
+    async def update(
+        self,
+        current_user,
+        update_data,
+        push_service=None,
+        notification_preferences_repository=None,
+    ):
+        existing = await self.relationship_repository.get_by_user_id(current_user.id)
+        old_next_meet_at = existing.next_meet_at
+        updated = await self.relationship_repository.update(current_user.id, update_data)
+
+        next_meet_at_changed = (
+            "next_meet_at" in update_data.model_dump(exclude_unset=True)
+            and updated.next_meet_at != old_next_meet_at
+        )
+        if next_meet_at_changed and push_service is not None:
+            await self._notify_partner_of_countdown_update(
+                current_user, updated, push_service, notification_preferences_repository
+            )
+        return updated
+
+    async def _notify_partner_of_countdown_update(
+        self, current_user, relationship, push_service, prefs_repo
+    ):
+        try:
+            partner = await self.get_partner(current_user)
+        except RelationshipMemberNotFoundError:
+            return
+        if prefs_repo is not None:
+            opt_outs = await prefs_repo.list_opt_outs(partner.id)
+            if NotificationKey.countdown_updated.value in opt_outs:
+                return
+
+        if relationship.next_meet_at is None:
+            title = "Countdown cleared"
+            body = f"{current_user.name} removed the countdown"
+        else:
+            title = "Countdown updated"
+            body = f"{current_user.name} set a new date"
+
+        try:
+            await push_service.send_to_user(
+                user_id=partner.id,
+                title=title,
+                body=body,
+                data={
+                    "type": NotificationKey.countdown_updated.value,
+                    "relationship_id": relationship.id,
+                },
+            )
+        except Exception:
+            logger.exception("Failed to send countdown-updated push to user %s", partner.id)
 
     async def delete(self, user_id, relationship_invite_service=None):
         relationship = await self.relationship_repository.get_by_user_id(user_id)

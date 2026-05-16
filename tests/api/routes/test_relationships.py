@@ -1,7 +1,11 @@
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 
 from app.api.main import app
+from app.api.models import DeviceToken, NotificationOptOut, User
+from app.api.notifications.keys import NotificationKey
+from app.api.utils import push_client
 from tests.api.test_utils import (
     _create_authed_relationship,
     _create_duplicate_relationship,
@@ -9,6 +13,27 @@ from tests.api.test_utils import (
     _set_claims,
     get_current_claims,
 )
+
+
+@pytest.fixture
+def fake_push(monkeypatch):
+    calls: list[dict] = []
+
+    async def fake_send(tokens, title, body, data=None):
+        calls.append({"tokens": list(tokens), "title": title, "body": body, "data": data})
+        return push_client.PushSendResult(sent=len(tokens), dead_tokens=[])
+
+    monkeypatch.setattr(
+        "app.api.services.push_notifications_service.push_client.send_push", fake_send
+    )
+    return calls
+
+
+async def _add_push_token_for(db_session, email: str, token: str):
+    user = (await db_session.execute(select(User).where(User.email == email))).scalar_one()
+    db_session.add(DeviceToken(user_id=user.id, token=token, platform="ios"))
+    await db_session.commit()
+    return user
 
 
 @pytest.fixture
@@ -121,6 +146,128 @@ class TestRelationshipsUpdate:
         assert updated["id"] == rel_id
         assert updated["type"] == "friendship"
         assert updated["status"] == "active"
+
+    async def test_setting_next_meet_at_notifies_partner(
+        self, client: AsyncClient, db_session, fake_push
+    ):
+        from tests.api.test_utils import _create_relationship_invite
+
+        res, inviter, invitee = await _create_relationship_invite(client)
+        token = res.json()["token"]
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        await client.post(
+            "/relationships",
+            json={"type": "romantic", "status": "active", "role": "partner", "invite_token": token},
+        )
+        # Give the inviter (the partner from invitee's POV) a push token.
+        await _add_push_token_for(db_session, inviter["email"], "ExponentPushToken[inviter]")
+
+        res = await client.patch(
+            "/relationships", json={"next_meet_at": "2026-12-01T10:00:00+00:00"}
+        )
+        assert res.status_code == 200, res.text
+
+        assert len(fake_push) == 1
+        sent = fake_push[0]
+        assert sent["tokens"] == ["ExponentPushToken[inviter]"]
+        assert sent["title"] == "Countdown updated"
+        assert "Test Name" in sent["body"]
+        assert sent["data"]["type"] == NotificationKey.countdown_updated.value
+
+    async def test_clearing_next_meet_at_notifies_partner(
+        self, client: AsyncClient, db_session, fake_push
+    ):
+        from tests.api.test_utils import _create_relationship_invite
+
+        res, inviter, invitee = await _create_relationship_invite(client)
+        token = res.json()["token"]
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        await client.post(
+            "/relationships",
+            json={"type": "romantic", "status": "active", "role": "partner", "invite_token": token},
+        )
+        await _add_push_token_for(db_session, inviter["email"], "ExponentPushToken[inviter]")
+
+        # Set first, then clear.
+        await client.patch("/relationships", json={"next_meet_at": "2026-12-01T10:00:00+00:00"})
+        fake_push.clear()
+        res = await client.patch("/relationships", json={"next_meet_at": None})
+        assert res.status_code == 200, res.text
+
+        assert len(fake_push) == 1
+        assert fake_push[0]["title"] == "Countdown cleared"
+
+    async def test_status_only_update_does_not_notify(
+        self, client: AsyncClient, db_session, fake_push
+    ):
+        from tests.api.test_utils import _create_relationship_invite
+
+        res, inviter, invitee = await _create_relationship_invite(client)
+        token = res.json()["token"]
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        await client.post(
+            "/relationships",
+            json={"type": "romantic", "status": "active", "role": "partner", "invite_token": token},
+        )
+        await _add_push_token_for(db_session, inviter["email"], "ExponentPushToken[inviter]")
+
+        res = await client.patch("/relationships", json={"type": "friendship"})
+        assert res.status_code == 200, res.text
+        assert fake_push == []
+
+    async def test_partner_opt_out_suppresses_countdown_push(
+        self, client: AsyncClient, db_session, fake_push
+    ):
+        from tests.api.test_utils import _create_relationship_invite
+
+        res, inviter, invitee = await _create_relationship_invite(client)
+        token = res.json()["token"]
+        _set_claims(
+            {
+                "sub": str(invitee["supabase_user_id"]),
+                "email": invitee["email"],
+                "aud": "authenticated",
+                "iss": "https://fakereference.supabase.co/auth/v1",
+            }
+        )
+        await client.post(
+            "/relationships",
+            json={"type": "romantic", "status": "active", "role": "partner", "invite_token": token},
+        )
+        inviter_user = await _add_push_token_for(
+            db_session, inviter["email"], "ExponentPushToken[inviter]"
+        )
+        db_session.add(
+            NotificationOptOut(user_id=inviter_user.id, key=NotificationKey.countdown_updated.value)
+        )
+        await db_session.commit()
+
+        res = await client.patch(
+            "/relationships", json={"next_meet_at": "2026-12-01T10:00:00+00:00"}
+        )
+        assert res.status_code == 200, res.text
+        assert fake_push == []
 
     async def test_update_relationship_404(self, client: AsyncClient):
         user = await _create_user(client)

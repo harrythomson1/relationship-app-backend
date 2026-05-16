@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.api.auth.utils import get_current_user
 from app.api.dependencies import (
+    get_notification_preferences_repository,
+    get_push_notifications_service,
     get_relationship_invites_service,
     get_relationships_service,
     get_users_service,
@@ -20,6 +22,7 @@ from app.api.schemas.relationship_schema import (
     RelationshipUpdate,
 )
 from app.api.schemas.user_schema import PartnerSchema
+from app.api.services.push_notifications_service import PushNotificationsService
 from app.api.services.relationship_invites_service import (
     InviteExpiredError,
     RelationshipInvitesService,
@@ -31,6 +34,8 @@ router = APIRouter()
 relationship_service_dependency = Depends(get_relationships_service)
 relationship_invite_service_dependency = Depends(get_relationship_invites_service)
 users_service_dependency = Depends(get_users_service)
+push_service_dependency = Depends(get_push_notifications_service)
+notification_prefs_repo_dependency = Depends(get_notification_preferences_repository)
 get_current_user_dependency = Depends(get_current_user)
 
 
@@ -105,9 +110,16 @@ async def update_relationship(
     update_data: RelationshipUpdate,
     current_user=get_current_user_dependency,
     service: RelationshipsService = relationship_service_dependency,
+    push_service: PushNotificationsService = push_service_dependency,
+    notification_preferences_repository=notification_prefs_repo_dependency,
 ):
     try:
-        relationship = await service.update(current_user.id, update_data)
+        relationship = await service.update(
+            current_user,
+            update_data,
+            push_service=push_service,
+            notification_preferences_repository=notification_preferences_repository,
+        )
     except RelationshipMemberNotFoundError as e:
         raise HTTPException(status_code=404, detail={"message": str(e)}) from e
     except RelationshipNotFoundError as e:

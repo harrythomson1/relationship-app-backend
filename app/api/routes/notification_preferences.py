@@ -17,11 +17,13 @@ get_current_user_dependency = Depends(get_current_user)
 class PreferencesResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     overlap_opening: bool = True
+    countdown_updated: bool = True
 
 
 class PreferencesUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     overlap_opening: bool | None = None
+    countdown_updated: bool | None = None
 
 
 def _build_response(opt_outs: set[str]) -> PreferencesResponse:

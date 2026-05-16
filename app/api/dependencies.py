@@ -3,6 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.core.database_connection import get_db
 from app.api.repositories.device_token_repository import DeviceTokenRepository
+from app.api.repositories.notification_preferences_repository import (
+    NotificationPreferencesRepository,
+)
 from app.api.repositories.relationship_invite_repository import RelationshipInviteRepository
 from app.api.repositories.relationship_repository import RelationshipRepository
 from app.api.repositories.user_repository import UserRepository
@@ -68,3 +71,10 @@ async def get_push_notifications_service(
     device_token_repository=device_token_repository_dependency,
 ):
     return PushNotificationsService(device_token_repository)
+
+
+async def get_notification_preferences_repository(db: AsyncSession = db_dependency):
+    return NotificationPreferencesRepository(db)
+
+
+notification_preferences_repository_dependency = Depends(get_notification_preferences_repository)

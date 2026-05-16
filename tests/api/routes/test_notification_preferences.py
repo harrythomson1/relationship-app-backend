@@ -23,22 +23,28 @@ class TestNotificationPreferences:
 
         res = await client.get("/me/notification-preferences")
         assert res.status_code == 200
-        assert res.json() == {"overlap_opening": True}
+        assert res.json() == {"overlap_opening": True, "countdown_updated": True}
 
     @pytest.mark.asyncio
     async def test_disable_then_re_enable(self, client: AsyncClient):
         user = await _create_user(client)
         _authenticate_as(user)
 
-        res = await client.patch("/me/notification-preferences", json={"overlap_opening": False})
+        res = await client.patch(
+            "/me/notification-preferences",
+            json={"overlap_opening": False, "countdown_updated": True},
+        )
         assert res.status_code == 200
-        assert res.json() == {"overlap_opening": False}
+        assert res.json() == {"overlap_opening": False, "countdown_updated": True}
 
         res = await client.get("/me/notification-preferences")
-        assert res.json() == {"overlap_opening": False}
+        assert res.json() == {"overlap_opening": False, "countdown_updated": True}
 
-        res = await client.patch("/me/notification-preferences", json={"overlap_opening": True})
-        assert res.json() == {"overlap_opening": True}
+        res = await client.patch(
+            "/me/notification-preferences",
+            json={"overlap_opening": True, "countdown_updated": True},
+        )
+        assert res.json() == {"overlap_opening": True, "countdown_updated": True}
 
     @pytest.mark.asyncio
     async def test_disable_twice_is_idempotent(self, client: AsyncClient):
@@ -47,10 +53,11 @@ class TestNotificationPreferences:
 
         for _ in range(2):
             res = await client.patch(
-                "/me/notification-preferences", json={"overlap_opening": False}
+                "/me/notification-preferences",
+                json={"overlap_opening": False, "countdown_updated": True},
             )
             assert res.status_code == 200
-            assert res.json() == {"overlap_opening": False}
+            assert res.json() == {"overlap_opening": False, "countdown_updated": True}
 
     @pytest.mark.asyncio
     async def test_unknown_key_rejected(self, client: AsyncClient):
@@ -72,9 +79,12 @@ class TestNotificationPreferences:
     async def test_other_user_prefs_isolated(self, client: AsyncClient):
         user_a = await _create_user(client)
         _authenticate_as(user_a)
-        await client.patch("/me/notification-preferences", json={"overlap_opening": False})
+        await client.patch(
+            "/me/notification-preferences",
+            json={"overlap_opening": False, "countdown_updated": True},
+        )
 
         user_b = await _create_user(client)
         _authenticate_as(user_b)
         res = await client.get("/me/notification-preferences")
-        assert res.json() == {"overlap_opening": True}
+        assert res.json() == {"overlap_opening": True, "countdown_updated": True}
