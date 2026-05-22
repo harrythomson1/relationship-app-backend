@@ -3,10 +3,13 @@ import logging
 import os
 from contextlib import asynccontextmanager, suppress
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.core.database_connection import SessionLocal
+from app.api.core.database_connection import SessionLocal, get_db
 from app.api.jobs.overlap_notifier import notify_imminent_overlaps
 from app.api.routes import (
     invites,
@@ -67,6 +70,14 @@ app.include_router(push_tokens.router)
 app.include_router(notification_preferences.router)
 
 
+get_db_dependency = Depends(get_db)
+
+
 @app.get("/health")
-def health():
-    return {"status": "ok"}
+async def health(db: AsyncSession = get_db_dependency):
+    try:
+        await db.execute(text("SELECT 1"))
+    except Exception:
+        logger.exception("health check DB probe failed")
+        return JSONResponse(status_code=503, content={"status": "error", "db": "down"})
+    return {"status": "ok", "db": "ok"}
