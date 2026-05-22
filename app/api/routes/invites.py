@@ -5,6 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 
 from app.api.auth.utils import get_current_user
+from app.api.core import config
 from app.api.dependencies import get_relationship_invites_service
 from app.api.repositories.relationship_invite_repository import (
     DuplicateInviteError,
@@ -28,10 +29,6 @@ router = APIRouter(prefix="/relationships", tags=["relationships"])
 
 relationship_invite_service_dependency = Depends(get_relationship_invites_service)
 get_current_user_dependency = Depends(get_current_user)
-
-BASE_URL = os.environ.get(
-    "INVITE_ACCEPT_BASE_URL", "https://relationship-app-backend-production.up.railway.app"
-)
 
 
 async def _send_invite_email_safely(sender, receiver, subject, content):
@@ -83,7 +80,10 @@ async def add_relationship_invite(
 ):
     try:
         relationship_invite = await service.add(relationship_invite_info, current_user)
-        accept_url = f"{BASE_URL}/relationships/invites/accept?token={relationship_invite.token}"
+        accept_url = (
+            f"{config.INVITE_ACCEPT_BASE_URL}"
+            f"/relationships/invites/accept?token={relationship_invite.token}"
+        )
         html_content = f"""
 <p>Hello, you've been invited to connect on Anywhere.</p>
 <p><a href="{accept_url}">Tap here to accept</a></p>
