@@ -1,4 +1,5 @@
 import logging
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -45,6 +46,9 @@ async def send_test_push(
     service: PushNotificationsService = push_service_dependency,
     current_user=get_current_user_dependency,
 ):
+    # Diagnostic-only endpoint; disabled unless explicitly enabled for an env.
+    if os.getenv("ENABLE_TEST_PUSH_ENDPOINT", "false").lower() != "true":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"message": "Not found"})
     try:
         result = await service.send_to_user(
             user_id=current_user.id,

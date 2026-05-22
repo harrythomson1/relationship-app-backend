@@ -114,6 +114,18 @@ class TestPushTokenRegistration:
 
 
 class TestPushTokenSend:
+    @pytest.fixture(autouse=True)
+    def _enable_test_endpoint(self, monkeypatch):
+        monkeypatch.setenv("ENABLE_TEST_PUSH_ENDPOINT", "true")
+
+    @pytest.mark.asyncio
+    async def test_endpoint_is_404_when_disabled(self, client: AsyncClient, monkeypatch):
+        monkeypatch.delenv("ENABLE_TEST_PUSH_ENDPOINT", raising=False)
+        user = await _create_user(client)
+        _authenticate_as(user)
+        res = await client.post("/me/push-tokens/test")
+        assert res.status_code == 404, res.text
+
     @pytest.mark.asyncio
     async def test_test_endpoint_sends_to_caller_tokens(self, client: AsyncClient, stub_expo_push):
         user = await _create_user(client)
