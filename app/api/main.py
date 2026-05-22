@@ -3,6 +3,7 @@ import logging
 import os
 from contextlib import asynccontextmanager, suppress
 
+import sentry_sdk
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -21,6 +22,29 @@ from app.api.routes import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _scrub_sensitive(event, _hint):
+    request = event.get("request")
+    if isinstance(request, dict):
+        headers = request.get("headers")
+        if isinstance(headers, dict):
+            for key in list(headers):
+                if key.lower() in {"authorization", "cookie"}:
+                    headers.pop(key, None)
+    return event
+
+
+_sentry_dsn = os.getenv("SENTRY_DSN", "")
+if _sentry_dsn:
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
+        release=os.getenv("SENTRY_RELEASE") or None,
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        send_default_pii=False,
+        before_send=_scrub_sensitive,
+    )
 
 OVERLAP_NOTIFIER_INTERVAL_SECONDS = int(os.getenv("OVERLAP_NOTIFIER_INTERVAL_SECONDS", "60"))
 OVERLAP_NOTIFIER_ENABLED = os.getenv("OVERLAP_NOTIFIER_ENABLED", "true").lower() == "true"
