@@ -1,0 +1,57 @@
+name: backend-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/relationship_test
+      SYNC_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/relationship_test
+      # Tests mock JWKS/email/Supabase, so these only need to be present, not real.
+      JWKS_URL: https://example.test/jwks
+      PROJECT_URL: https://example.test
+      AUDIENCE: authenticated
+      ALGORITHM: ES256
+      RESEND_API_KEY: ci-not-used
+      SUPABASE_SERVICE_ROLE_KEY: ci-not-used
+      INVITE_ACCEPT_BASE_URL: http://ci.local
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Format check (black)
+        run: black --check app tests conftest.py
+
+      - name: Run tests
+        run: pytest -q
